@@ -2,10 +2,10 @@ language: javascript
 services:
   - docker
 before_install:
-  - npm install -g gulp
+  - npm install --loglevel error -g gulp
   - docker run -d -p 4569:4569 --name s3 lphoward/fake-s3
   - npm install aws-sdk bluebird
   - node admin/setup-s3.js http://localhost:4569/
 script:
-  - npm install
+  - npm install --loglevel error
   - gulp report-coverage
