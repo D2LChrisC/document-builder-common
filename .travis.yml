@@ -8,4 +8,4 @@ before_install:
   - node admin/setup-s3.js http://localhost:4569/
 script:
   - npm install
-  - gulp test
+  - gulp report-coverage
