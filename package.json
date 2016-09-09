@@ -1,0 +1,48 @@
+{
+  "name": "d2l-document-builder-common",
+  "version": "1.0.0",
+  "description": "Common utilities to support the D2L Document Builder service.",
+  "main": "index.js",
+  "private": true,
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/D2LChrisC/document-builder-common.git"
+  },
+  "keywords": [
+    "Document",
+    "Builder",
+    "Doc",
+    "Builder",
+    "Doc",
+    "Harder",
+    "utilities",
+    "util",
+    "s3",
+    "DynamoDb"
+  ],
+  "author": "D2L, Inc.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/D2LChrisC/document-builder-common/issues"
+  },
+  "homepage": "https://github.com/D2LChrisC/document-builder-common#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint-config-brightspace": "^0.2.1",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "^3.0.1",
+    "gulp-mocha": "^3.0.1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.6.0",
+    "babel-core": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0",
+    "bluebird": "^3.4.6"
+  }
+}

@@ -1,0 +1,17 @@
+{
+	env: {
+		node: true,
+		mocha: true,
+		es6: true
+	},
+	parserOptions: {
+		ecmaVersion: 6,
+		sourceType: 'module',
+		ecmaFeatures: {}
+	},
+	extends: 'brightspace/node-config',
+	rules: {
+		no-console: 1,
+		no-unused-vars: 1
+	}
+}
