@@ -8,7 +8,7 @@ const isparta = require('isparta');
 
 gulp.task('lint', () => {
 	return gulp
-		.src(['util/**/*.js', 'tests/**/*.js', 'util.js'])
+		.src(['util/**/*.js', 'data/**/*.js', 'tests/**/*.js', 'util.js'])
 		.pipe(eslint())
 		.pipe(eslint.format())
 		.pipe(eslint.failOnError());
@@ -16,7 +16,7 @@ gulp.task('lint', () => {
 
 gulp.task('coverage', () => {
 	return gulp
-		.src(['util/**/*.js'])
+		.src(['util/**/*.js', 'data/**/*.js'])
 		.pipe(istanbul({ instrumenter: isparta.Instrumenter }))
 		.pipe(istanbul.hookRequire());
 })
