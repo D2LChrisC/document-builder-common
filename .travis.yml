@@ -4,8 +4,10 @@ services:
 before_install:
   - npm install --loglevel error -g gulp
   - docker run -d -p 4569:4569 --name s3 lphoward/fake-s3
+  - docker run -d -p 7777:7777 --name dynamodb tray/dynamodb-local -inMemory -port 7777
   - npm install aws-sdk bluebird
   - node admin/setup-s3.js http://localhost:4569/
+  - node admin/setup-db.js http://localhost:7777/
 script:
   - npm install --loglevel error
   - gulp report-coverage
