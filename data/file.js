@@ -13,7 +13,13 @@ module.exports = function(database) {
 			format: joi.string().required().regex(/^(pdf|raw)$/),
 			createdAt: joi.number().required().integer(),
 			expires: joi.number().required().integer(),
-			path: joi.string().required()
+			status: joi.string().required().regex(/^(Complete|In progress|Failed|Cancelled|Expired|Pending)$/),
+			path: joi.string().required(),
+			error: {
+				id: joi.string().uri(),
+				title: joi.string(),
+				description: joi.string()
+			}
 		}
 	});
 

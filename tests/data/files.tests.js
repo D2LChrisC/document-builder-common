@@ -31,7 +31,13 @@ describe('File class', () => {
 				format: 'pdf',
 				createdAt: date,
 				expires: expires,
-				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf'
+				status: 'Complete',
+				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf',
+				error: {
+					id: 'http://errors.brightspace.com/failure',
+					title: 'Something happened',
+					description: 'Aspose failed.'
+				}
 			};
 		});
 
@@ -70,6 +76,16 @@ describe('File class', () => {
 			testValidation(file, 'File was saved with a non-numeric expiration date.', done);
 		});
 
+		it('prevents missing status code', done => {
+			file.status = undefined;
+			testValidation(file, 'File was saved without a Status.', done);
+		});
+
+		it('prevents invalid status code', done => {
+			file.status = 'Waiting on coffee';
+			testValidation(file, 'File was saved with an invalid Status', done);
+		});
+
 		it('prevents missing path', done => {
 			file.path = undefined;
 			testValidation(file, 'File was saved without a path.', done);
@@ -85,9 +101,15 @@ describe('File class', () => {
 			file = {
 				checksum: 'aoewigh3240239r3rhf0m30fj0324',
 				format: 'pdf',
+				status: 'Complete',
 				createdAt: date,
 				expires: expires,
-				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf'
+				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf',
+				error: {
+					id: 'http://errors.brightspace.com/failure',
+					title: 'Something happened',
+					description: 'Aspose failed.'
+				}
 			};
 		});
 
@@ -110,7 +132,9 @@ describe('File class', () => {
 					expect(result.get('format')).to.equal(file.format);
 					expect(result.get('createdAt')).to.equal(file.createdAt);
 					expect(result.get('expires')).to.equal(file.expires);
+					expect(result.get('status')).to.equal(file.status);
 					expect(result.get('path')).to.equal(file.path);
+					expect(result.get('error')).to.eql(file.error);
 					done();
 				})
 				.catch(err => done(err));
@@ -123,6 +147,7 @@ describe('File class', () => {
 				.then(() => {
 					file.expires = (new Date()).getTime();
 					file.path = 'my-new-path-is-better/whatevs';
+					file.status = 'Failed';
 
 					return File.updateAsync(file);
 				})
@@ -137,7 +162,9 @@ describe('File class', () => {
 					expect(result.get('format')).to.equal(file.format);
 					expect(result.get('createdAt')).to.equal(file.createdAt);
 					expect(result.get('expires')).to.equal(file.expires);
+					expect(result.get('status')).to.equal(file.status);
 					expect(result.get('path')).to.equal(file.path);
+					expect(result.get('error')).to.eql(file.error);
 					done();
 				})
 				.catch(err => done(err));
