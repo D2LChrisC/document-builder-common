@@ -53,10 +53,29 @@ var conversionsTable = {
 	}
 };
 
+var filesTable = {
+	TableName: 'DocBuilder-Files',
+	KeySchema: [
+		{ AttributeName: 'checksum', KeyType: 'HASH' },
+		{ AttributeName: 'format', KeyType: 'RANGE' }
+	],
+	AttributeDefinitions: [
+		{ AttributeName: 'checksum', AttributeType: 'S' },
+		{ AttributeName: 'format', AttributeType: 'S' }
+	],
+	ProvisionedThroughput: {
+		ReadCapacityUnits: 10,
+		WriteCapacityUnits: 10
+	}
+};
+
+var existingTables;
+
 dynamoDb
 	.listTablesAsync()
 	.then(tables => {
-		if(tables.TableNames.indexOf('DocBuilder-Conversions') === -1) {
+		existingTables = tables;
+		if(existingTables.TableNames.indexOf('DocBuilder-Conversions') === -1) {
 			return dynamoDb.createTableAsync(conversionsTable);
 		}
 
@@ -65,6 +84,17 @@ dynamoDb
 	.then(result => {
 		if(result) {
 			console.log('Conversions table created successfully.');
+		}
+
+		if(existingTables.TableNames.indexOf('DocBuilder-Files') === -1) {
+			return dynamoDb.createTableAsync(filesTable);
+		}
+
+		console.log('Files table already exists.');
+	})
+	.then(result => {
+		if(result) {
+			console.log('Files table created successfully.');
 		}
 
 		console.log('Database has been deployed.');
