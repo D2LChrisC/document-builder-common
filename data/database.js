@@ -18,6 +18,7 @@ class DynamoDatabase {
 		vogels.dynamoDriver(db);
 
 		this.Conversion = require('./conversion')(vogels);
+		this.File = require('./file')(vogels);
 	}
 }
 

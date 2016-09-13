@@ -99,7 +99,6 @@ describe('Conversion class', () => {
 	});
 
 	describe('CRUD operations', () => {
-		const itemsToDelete = [];
 		let conversion = {};
 
 		beforeEach(() => {
@@ -123,7 +122,6 @@ describe('Conversion class', () => {
 		it('can save a conversion item', done => {
 			Conversion.createAsync(conversion)
 				.then(() => {
-					itemsToDelete.push(conversion);
 					return Conversion.getAsync(
 						conversion.fileId,
 						conversion.format);
