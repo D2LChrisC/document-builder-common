@@ -24,7 +24,7 @@ Example:
 ```
 import { Database } from 'document-builder-common';
 
-const db = new DynamoDatabase(
+const db = new Database(
 	'aws-key-id',
 	'aws-secret',
 	'us-east-1');
