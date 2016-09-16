@@ -1,4 +1,4 @@
-import Database from '../../data/database';
+import Database from '../../src/data/database';
 import { expect } from 'chai';
 
 const db = new Database(

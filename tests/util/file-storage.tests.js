@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
 import { expect } from 'chai';
-import FileStorage from '../../util/file-storage';
+import FileStorage from '../../src/util/file-storage';
 import fs from 'fs';
 import Promise from 'bluebird';
 
