@@ -2,12 +2,13 @@
   "name": "d2l-document-builder-common",
   "version": "1.0.0",
   "description": "Common utilities to support the D2L Document Builder service.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "private": true,
   "directories": {
     "test": "tests"
   },
   "scripts": {
+    "compile": "./node_modules/.bin/babel --presets es2015 --out-dir dist/ src/",
     "test": "gulp test"
   },
   "repository": {
@@ -33,6 +34,7 @@
   },
   "homepage": "https://github.com/D2LChrisC/document-builder-common#readme",
   "devDependencies": {
+    "babel-cli": "^6.14.0",
     "chai": "^3.5.0",
     "eslint-config-brightspace": "^0.2.1",
     "gulp": "^3.9.1",
