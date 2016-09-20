@@ -25,7 +25,7 @@ class FileStorage {
 		this.bucket = bucket;
 
 		const awsConfig = {
-			s3ForceForcePathStyle: true,
+			s3ForcePathStyle: true,
 			accessKeyId: accessKey,
 			secretAccessKey: accessSecret,
 			signatureVersion: 'v4',
