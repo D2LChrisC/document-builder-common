@@ -33,6 +33,8 @@ describe('File class', () => {
 				expires: expires,
 				status: 'Complete',
 				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf',
+				fileUri: 'https://s3.amazon.com/myfile',
+				fileUriExpires: expires,
 				error: {
 					id: 'http://errors.brightspace.com/failure',
 					title: 'Something happened',
@@ -105,6 +107,8 @@ describe('File class', () => {
 				createdAt: date,
 				expires: expires,
 				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf',
+				fileUri: 'https://s3.amazon.com/myfile',
+				fileUriExpires: expires,
 				error: {
 					id: 'http://errors.brightspace.com/failure',
 					title: 'Something happened',
@@ -135,6 +139,9 @@ describe('File class', () => {
 					expect(result.get('status')).to.equal(file.status);
 					expect(result.get('path')).to.equal(file.path);
 					expect(result.get('error')).to.eql(file.error);
+					expect(result.get('fileUri')).to.eql(file.fileUri);
+					expect(result.get('fileUriExpires'))
+						.to.eql(file.fileUriExpires);
 					done();
 				})
 				.catch(err => done(err));

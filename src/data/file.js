@@ -15,6 +15,8 @@ module.exports = function(database) {
 			expires: joi.number().required().integer(),
 			status: joi.string().required().regex(/^(Complete|In progress|Failed|Cancelled|Expired|Pending)$/),
 			path: joi.string().required(),
+			fileUri: joi.string(),
+			fileUriExpires: joi.number().integer(),
 			error: {
 				id: joi.string().uri(),
 				title: joi.string(),
