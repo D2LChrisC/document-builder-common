@@ -5,6 +5,8 @@ export const Database = DynamoDatabase;
 
 export const FileStorage = S3FileStorage;
 
+export * from './util/logger';
+
 export default {
 	Database: DynamoDatabase,
 	FileStorage: S3FileStorage

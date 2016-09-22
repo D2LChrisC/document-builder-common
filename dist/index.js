@@ -5,6 +5,18 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.FileStorage = exports.Database = undefined;
 
+var _logger = require('./util/logger');
+
+Object.keys(_logger).forEach(function (key) {
+	if (key === "default" || key === "__esModule") return;
+	Object.defineProperty(exports, key, {
+		enumerable: true,
+		get: function get() {
+			return _logger[key];
+		}
+	});
+});
+
 var _database = require('./data/database');
 
 var _database2 = _interopRequireDefault(_database);

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.createLogger = createLogger;
+exports.default = createLogger;
 
 var _bunyan = require('bunyan');
 

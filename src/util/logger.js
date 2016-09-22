@@ -1,6 +1,6 @@
 import bunyan from 'bunyan';
 
-export function createLogger(name, config) {
+export default function createLogger(name, config) {
 	config = config || { logLevel: 'debug' };
 
 	const logStream = config.logFile ?
