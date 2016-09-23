@@ -30,14 +30,7 @@ describe('Conversion class', () => {
 				format: 'raw',
 				createdAt: date,
 				lastTouched: date,
-				checksum: 'aoewigh3240239r3rhf0m30fj0324',
-				status: 'Complete',
-				fileUri: 'https://wherever.s3.amazon.com/myfile/xyz/123/file.txt',
-				error: {
-					id: 'http://errors.brightspace.com/failure',
-					title: 'Something happened',
-					description: 'Aspose failed.'
-				}
+				checksum: 'aoewigh3240239r3rhf0m30fj0324'
 			};
 		});
 
@@ -76,26 +69,6 @@ describe('Conversion class', () => {
 			testValidation(conversion, 'Conversion was saved with a non-numeric Last Touched date.', done);
 		});
 
-		it('prevents missing status code', done => {
-			conversion.status = undefined;
-			testValidation(conversion, 'Conversion was saved without a Status.', done);
-		});
-
-		it('prevents invalid status code', done => {
-			conversion.status = 'Waiting on coffee';
-			testValidation(conversion, 'Conversion was saved with an invalid Status', done);
-		});
-
-		it('prevents invlaid file URI', done => {
-			conversion.fileUri = 'this is definitely not a URI.';
-			testValidation(conversion, 'Conversion was saved with an invalid file URI.', done);
-		});
-
-		it('prevents invalid error ID', done => {
-			conversion.error.id = 'This is another bad URI.';
-			testValidation(conversion, 'Conversion was saved with an invalid error ID.', done);
-		});
-
 	});
 
 	describe('CRUD operations', () => {
@@ -109,7 +82,7 @@ describe('Conversion class', () => {
 				format: 'pdf',
 				createdAt: date,
 				lastTouched: date,
-				status: 'Pending'
+				checksum: 'aoewigh3240239r3rhf0m30fj0324'
 			};
 		});
 
@@ -132,7 +105,6 @@ describe('Conversion class', () => {
 					expect(result.get('format')).to.equal(conversion.format);
 					expect(result.get('createdAt')).to.equal(conversion.createdAt);
 					expect(result.get('lastTouched')).to.equal(conversion.lastTouched);
-					expect(result.get('status')).to.equal(conversion.status);
 					done();
 				})
 				.catch(err => done(err));
@@ -144,14 +116,8 @@ describe('Conversion class', () => {
 			Conversion.createAsync(conversion)
 				.then(() => {
 					conversion.lastTouched = (new Date()).getTime();
-					conversion.status = 'Complete';
 					conversion.checksum = 'abc-12345';
 					conversion.fileUri = 'https://myfile.s3.amazon.com/files/mystuff/file.pdf';
-					conversion.error = {
-						id: 'http://fail.com/error',
-						title: 'Actually, everything worked.',
-						description: 'All is well.'
-					};
 
 					return Conversion.updateAsync(conversion);
 				})
@@ -166,10 +132,8 @@ describe('Conversion class', () => {
 					expect(result.get('format')).to.equal(conversion.format);
 					expect(result.get('createdAt')).to.equal(conversion.createdAt);
 					expect(result.get('lastTouched')).to.equal(conversion.lastTouched);
-					expect(result.get('status')).to.equal(conversion.status);
 					expect(result.get('checksum')).to.equal(conversion.checksum);
 					expect(result.get('fileUri')).to.equal(conversion.fileUri);
-					expect(result.get('error')).to.eql(conversion.error);
 					done();
 				})
 				.catch(err => done(err));

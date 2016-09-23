@@ -22,14 +22,7 @@ module.exports = function (database) {
 			format: _joi2.default.string().required().regex(/^(pdf|raw)$/),
 			createdAt: _joi2.default.number().required().integer(),
 			lastTouched: _joi2.default.number().required().integer(),
-			checksum: _joi2.default.string(),
-			status: _joi2.default.string().required().regex(/^(Complete|In progress|Failed|Cancelled|Expired|Pending)$/),
-			fileUri: _joi2.default.string().uri(),
-			error: {
-				id: _joi2.default.string().uri(),
-				title: _joi2.default.string(),
-				description: _joi2.default.string()
-			}
+			checksum: _joi2.default.string()
 		}
 	});
 
