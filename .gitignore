@@ -39,6 +39,11 @@ jspm_packages
 
 # Visual Studio Code
 .vscode
+jsconfig.json
+typings.json
 
 # Temp directory
 tmp/
+
+# Typings
+typings/
