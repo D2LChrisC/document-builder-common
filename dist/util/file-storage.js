@@ -47,7 +47,7 @@ var FileStorage = function () {
 		this.bucket = bucket;
 
 		var awsConfig = {
-			s3ForceForcePathStyle: true,
+			s3ForcePathStyle: true,
 			accessKeyId: accessKey,
 			secretAccessKey: accessSecret,
 			signatureVersion: 'v4',
