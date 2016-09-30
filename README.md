@@ -84,8 +84,6 @@ const options = {
 	messageHandler: (message, done) => {
 		// ..
 	}
-}
-
 };
 
 createQueue(options);
