@@ -20,9 +20,11 @@ function createLogger(name, config) {
 
 	var logStream = config.logFile ? { type: config.logType || 'rotating-file', path: config.logFile } : { stream: process.stdout };
 
-	logStream.level = config.logLevel;
-
-	var logConfig = { name: name, streams: [logStream] };
+	var logConfig = {
+		name: name,
+		streams: [logStream],
+		level: config.logLevel
+	};
 
 	if (config.logstashHost) {
 		var logstashStream = {

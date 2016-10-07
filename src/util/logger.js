@@ -8,9 +8,11 @@ export default function createLogger(name, config) {
 		{ type: config.logType || 'rotating-file', path: config.logFile } :
 		{ stream: process.stdout };
 
-	logStream.level = config.logLevel;
-
-	const logConfig = { name: name, streams: [logStream] };
+	const logConfig = {
+		name: name,
+		streams: [logStream],
+		level: config.logLevel
+	};
 
 	if (config.logstashHost) {
 		const logstashStream = {
