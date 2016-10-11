@@ -79,6 +79,21 @@ class FileStorage {
 			});
 	}
 
+	deleteFile(key) {
+		return this.s3
+			.deleteObjectAsync({
+				Bucket: this.bucket,
+				Key: key
+			})
+			.catch(err => {
+				if (/.*NoSuchKey.*/i.test(err)) {
+					return null;
+				}
+
+				throw err;
+			});
+	}
+
 	getLinkToFile(key) {
 		return this.s3
 			.headObjectAsync({

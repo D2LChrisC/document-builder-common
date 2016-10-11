@@ -165,6 +165,47 @@ describe('File storgage utility', () => {
 
 	});
 
+	describe('deleteFile function', () => {
+
+		it('will delete a file from S3', done => {
+			const key = 'delete-me';
+
+			openReadStream('tests/testAssets/diving-checklist.docx')
+				.then(stream => {
+					return s3.uploadAsync({
+						Bucket: testBucket,
+						Key: key,
+						Body: stream
+					});
+				})
+				.then(() => {
+					return storage.deleteFile(key);
+				})
+				.then(() => {
+					return s3.getObjectAsync({
+						Bucket: testBucket,
+						Key: key
+					});
+				})
+				.catch(err => {
+					if (/.*NoSuchKey.*/i.test(err)) {
+						return done();
+					}
+
+					done(err);
+				});
+		});
+
+		it('will succeed if file does not exist', done => {
+			const key = 'delete-wat';
+
+			storage.deleteFile(key)
+				.then(() => done())
+				.catch(done);
+		});
+
+	});
+
 	describe('getLinkToFile function', () => {
 
 		it('will return a signed URL for a file', done => {
