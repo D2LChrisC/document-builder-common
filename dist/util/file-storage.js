@@ -101,6 +101,20 @@ var FileStorage = function () {
 			});
 		}
 	}, {
+		key: 'deleteFile',
+		value: function deleteFile(key) {
+			return this.s3.deleteObjectAsync({
+				Bucket: this.bucket,
+				Key: key
+			}).catch(function (err) {
+				if (/.*NoSuchKey.*/i.test(err)) {
+					return null;
+				}
+
+				throw err;
+			});
+		}
+	}, {
 		key: 'getLinkToFile',
 		value: function getLinkToFile(key) {
 			var _this2 = this;
