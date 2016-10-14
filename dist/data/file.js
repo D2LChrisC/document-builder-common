@@ -23,7 +23,6 @@ module.exports = function (database) {
 			createdAt: _joi2.default.number().required().integer(),
 			expires: _joi2.default.number().required().integer(),
 			status: _joi2.default.string().required().regex(/^(Complete|In progress|Failed|Cancelled|Expired|Pending)$/),
-			path: _joi2.default.string().required(),
 			fileUri: _joi2.default.string(),
 			fileUriExpires: _joi2.default.number().integer(),
 			error: {
