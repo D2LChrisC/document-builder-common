@@ -32,7 +32,6 @@ describe('File class', () => {
 				createdAt: date,
 				expires: expires,
 				status: 'Complete',
-				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf',
 				fileUri: 'https://s3.amazon.com/myfile',
 				fileUriExpires: expires,
 				error: {
@@ -87,11 +86,6 @@ describe('File class', () => {
 			file.status = 'Waiting on coffee';
 			testValidation(file, 'File was saved with an invalid Status', done);
 		});
-
-		it('prevents missing path', done => {
-			file.path = undefined;
-			testValidation(file, 'File was saved without a path.', done);
-		});
 	});
 
 	describe('CRUD operations', () => {
@@ -106,7 +100,6 @@ describe('File class', () => {
 				status: 'Complete',
 				createdAt: date,
 				expires: expires,
-				path: 'mytenant/aoewigh3240239r3rhf0m30fj0324.pdf',
 				fileUri: 'https://s3.amazon.com/myfile',
 				fileUriExpires: expires,
 				error: {
@@ -137,7 +130,6 @@ describe('File class', () => {
 					expect(result.get('createdAt')).to.equal(file.createdAt);
 					expect(result.get('expires')).to.equal(file.expires);
 					expect(result.get('status')).to.equal(file.status);
-					expect(result.get('path')).to.equal(file.path);
 					expect(result.get('error')).to.eql(file.error);
 					expect(result.get('fileUri')).to.eql(file.fileUri);
 					expect(result.get('fileUriExpires'))
@@ -153,7 +145,6 @@ describe('File class', () => {
 			File.createAsync(file)
 				.then(() => {
 					file.expires = (new Date()).getTime();
-					file.path = 'my-new-path-is-better/whatevs';
 					file.status = 'Failed';
 
 					return File.updateAsync(file);
@@ -170,7 +161,6 @@ describe('File class', () => {
 					expect(result.get('createdAt')).to.equal(file.createdAt);
 					expect(result.get('expires')).to.equal(file.expires);
 					expect(result.get('status')).to.equal(file.status);
-					expect(result.get('path')).to.equal(file.path);
 					expect(result.get('error')).to.eql(file.error);
 					done();
 				})
