@@ -100,8 +100,6 @@ describe('File class', () => {
 				status: 'Complete',
 				createdAt: date,
 				expires: expires,
-				fileUri: 'https://s3.amazon.com/myfile',
-				fileUriExpires: expires,
 				error: {
 					id: 'http://errors.brightspace.com/failure',
 					title: 'Something happened',
@@ -131,9 +129,6 @@ describe('File class', () => {
 					expect(result.get('expires')).to.equal(file.expires);
 					expect(result.get('status')).to.equal(file.status);
 					expect(result.get('error')).to.eql(file.error);
-					expect(result.get('fileUri')).to.eql(file.fileUri);
-					expect(result.get('fileUriExpires'))
-						.to.eql(file.fileUriExpires);
 					done();
 				})
 				.catch(err => done(err));
