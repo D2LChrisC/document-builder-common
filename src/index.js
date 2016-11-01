@@ -2,6 +2,7 @@ import DynamoDatabase from './data/database';
 import S3FileStorage from './util/file-storage';
 import SQSQueueService from './util/queue-service';
 import logger from './util/logger';
+import { isFormatSupported } from './util/misc';
 
 export const Database = DynamoDatabase;
 
@@ -11,16 +12,20 @@ export const createLogger = logger;
 
 export const createQueue = SQSQueueService;
 
+export const isFormatSupported = isFormatSupported;
+
 export default {
 	Database: DynamoDatabase,
 	FileStorage: S3FileStorage,
 	createLogger: createLogger,
-	createQueue: SQSQueueService
+	createQueue: SQSQueueService,
+	isFormatSupported: isFormatSupported
 };
 
 module.exports = {
 	Database: DynamoDatabase,
 	FileStorage: S3FileStorage,
 	createLogger: createLogger,
-	createQueue: SQSQueueService
+	createQueue: SQSQueueService,
+	isFormatSupported: isFormatSupported
 };
