@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.isFormatSupported = isFormatSupported;
 var supportedFormats = {
 	'pdf': ['', '.doc', '.docx', '.rtf', '.odt', '.ppt', '.pps', '.pptx', '.ppsx', '.odp', '.xls', '.xlsx'],
-	'raw': ['', '.doc', '.docx', '.rtf', '.odt']
+	'txt': ['', '.doc', '.docx', '.rtf', '.odt']
 };
 
 function isFormatSupported(format, extension) {

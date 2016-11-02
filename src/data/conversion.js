@@ -10,7 +10,7 @@ module.exports = function(database) {
 		rangeKey: 'format',
 		schema: {
 			fileId: joi.string().required(),
-			format: joi.string().required().regex(/^(pdf|raw)$/),
+			format: joi.string().required().regex(/^(pdf|txt)$/),
 			createdAt: joi.number().required().integer(),
 			lastTouched: joi.number().required().integer(),
 			checksum: joi.string()
