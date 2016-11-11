@@ -68,7 +68,8 @@ class FileStorage {
 				return {
 					LastModified: data.LastModified,
 					ContentLength: data.ContentLength,
-					Body: data.Body
+					Body: data.Body,
+					ContentType: data.ContentType
 				};
 			})
 			.catch(err => {
