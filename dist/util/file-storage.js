@@ -66,7 +66,7 @@ var FileStorage = function () {
 
 	_createClass(FileStorage, [{
 		key: 'putFile',
-		value: function putFile(key, filename, expiration) {
+		value: function putFile(key, filename, expiration, contentType) {
 			var _this = this;
 
 			var expirationTime = new Date(new Date(Date.now()).getTime() + expiration * 1000);
@@ -76,7 +76,8 @@ var FileStorage = function () {
 					Bucket: _this.bucket,
 					Key: key,
 					Body: stream,
-					Expires: expirationTime
+					Expires: expirationTime,
+					ContentType: contentType
 				});
 			});
 		}
@@ -90,7 +91,8 @@ var FileStorage = function () {
 				return {
 					LastModified: data.LastModified,
 					ContentLength: data.ContentLength,
-					Body: data.Body
+					Body: data.Body,
+					ContentType: data.ContentType
 				};
 			}).catch(function (err) {
 				if (/.*NoSuchKey.*/i.test(err)) {
