@@ -43,17 +43,24 @@ class FileStorage {
 	}
 
 	putFile(key, filename, expiration) {
-		const expirationTime = new Date(
-			new Date(Date.now()).getTime() + (expiration * 1000));
-
 		return openReadStream(filename)
 			.then(stream => {
 				return this.s3.putObjectAsync({
 					Bucket: this.bucket,
 					Key: key,
 					Body: stream,
-					Expires: expirationTime
+					Expires: new Date(expiration)
 				});
+			});
+	}
+
+	setFileExpiration(key, expiration) {
+		return this.s3
+			.copyObjectAsync({
+				Bucket: this.bucket,
+				CopySource: `${this.bucket}/${key}`,
+				Key: key,
+				Expires: new Date(expiration)
 			});
 	}
 

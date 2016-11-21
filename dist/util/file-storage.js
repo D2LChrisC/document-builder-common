@@ -69,15 +69,23 @@ var FileStorage = function () {
 		value: function putFile(key, filename, expiration) {
 			var _this = this;
 
-			var expirationTime = new Date(new Date(Date.now()).getTime() + expiration * 1000);
-
 			return openReadStream(filename).then(function (stream) {
 				return _this.s3.putObjectAsync({
 					Bucket: _this.bucket,
 					Key: key,
 					Body: stream,
-					Expires: expirationTime
+					Expires: new Date(expiration)
 				});
+			});
+		}
+	}, {
+		key: 'setFileExpiration',
+		value: function setFileExpiration(key, expiration) {
+			return this.s3.copyObjectAsync({
+				Bucket: this.bucket,
+				CopySource: this.bucket + '/' + key,
+				Key: key,
+				Expires: new Date(expiration)
 			});
 		}
 	}, {
