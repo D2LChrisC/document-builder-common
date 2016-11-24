@@ -42,7 +42,7 @@ class FileStorage {
 		Promise.promisifyAll(this.s3);
 	}
 
-	putFile(key, filename, expiration) {
+	putFile(key, filename, expiration, contentType) {
 		const expirationTime = new Date(
 			new Date(Date.now()).getTime() + (expiration * 1000));
 
@@ -52,7 +52,8 @@ class FileStorage {
 					Bucket: this.bucket,
 					Key: key,
 					Body: stream,
-					Expires: expirationTime
+					Expires: expirationTime,
+					ContentType: contentType
 				});
 			});
 	}
@@ -67,7 +68,8 @@ class FileStorage {
 				return {
 					LastModified: data.LastModified,
 					ContentLength: data.ContentLength,
-					Body: data.Body
+					Body: data.Body,
+					ContentType: data.ContentType
 				};
 			})
 			.catch(err => {
