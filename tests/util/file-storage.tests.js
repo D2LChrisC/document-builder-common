@@ -62,8 +62,7 @@ describe('File storgage utility', () => {
 			storage
 				.putFile(
 					key,
-					'tests/testAssets/diving-checklist.docx',
-					7)
+					'tests/testAssets/diving-checklist.docx')
 				.then(() => {
 					return s3.getObjectAsync({
 						Bucket: testBucket,
@@ -92,8 +91,7 @@ describe('File storgage utility', () => {
 				.then(() => {
 					return storage.putFile(
 						key,
-						'tests/testAssets/diving-checklist.docx',
-						7);
+						'tests/testAssets/diving-checklist.docx');
 				})
 				.then(() => {
 					return s3.getObjectAsync({
@@ -114,8 +112,7 @@ describe('File storgage utility', () => {
 
 			storage.putFile(
 				key,
-				'tests/testAssets/not-there.pptx',
-				22)
+				'tests/testAssets/not-there.pptx')
 				.then(() => {
 					done('No error was thrown');
 				})

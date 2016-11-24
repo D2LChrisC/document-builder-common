@@ -66,26 +66,24 @@ var FileStorage = function () {
 
 	_createClass(FileStorage, [{
 		key: 'putFile',
-		value: function putFile(key, filename, expiration) {
+		value: function putFile(key, filename) {
 			var _this = this;
 
 			return openReadStream(filename).then(function (stream) {
 				return _this.s3.putObjectAsync({
 					Bucket: _this.bucket,
 					Key: key,
-					Body: stream,
-					Expires: new Date(expiration)
+					Body: stream
 				});
 			});
 		}
 	}, {
-		key: 'setFileExpiration',
-		value: function setFileExpiration(key, expiration) {
+		key: 'resetFileExpiration',
+		value: function resetFileExpiration(key) {
 			return this.s3.copyObjectAsync({
 				Bucket: this.bucket,
 				CopySource: this.bucket + '/' + key,
-				Key: key,
-				Expires: new Date(expiration)
+				Key: key
 			});
 		}
 	}, {
@@ -97,6 +95,7 @@ var FileStorage = function () {
 			}).then(function (data) {
 				return {
 					LastModified: data.LastModified,
+					Expires: data.Expires,
 					ContentLength: data.ContentLength,
 					Body: data.Body
 				};

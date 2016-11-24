@@ -42,25 +42,23 @@ class FileStorage {
 		Promise.promisifyAll(this.s3);
 	}
 
-	putFile(key, filename, expiration) {
+	putFile(key, filename) {
 		return openReadStream(filename)
 			.then(stream => {
 				return this.s3.putObjectAsync({
 					Bucket: this.bucket,
 					Key: key,
-					Body: stream,
-					Expires: new Date(expiration)
+					Body: stream
 				});
 			});
 	}
 
-	setFileExpiration(key, expiration) {
+	resetFileExpiration(key) {
 		return this.s3
 			.copyObjectAsync({
 				Bucket: this.bucket,
 				CopySource: `${this.bucket}/${key}`,
-				Key: key,
-				Expires: new Date(expiration)
+				Key: key
 			});
 	}
 
@@ -73,6 +71,7 @@ class FileStorage {
 			.then(data => {
 				return {
 					LastModified: data.LastModified,
+					Expires: data.Expires,
 					ContentLength: data.ContentLength,
 					Body: data.Body
 				};
