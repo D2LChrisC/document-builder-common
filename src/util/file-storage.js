@@ -42,13 +42,14 @@ class FileStorage {
 		Promise.promisifyAll(this.s3);
 	}
 
-	putFile(key, filename) {
+	putFile(key, filename, contentType) {
 		return openReadStream(filename)
 			.then(stream => {
 				return this.s3.putObjectAsync({
 					Bucket: this.bucket,
 					Key: key,
-					Body: stream
+					Body: stream,
+					ContentType: contentType
 				});
 			});
 	}
@@ -73,7 +74,8 @@ class FileStorage {
 					LastModified: data.LastModified,
 					Expires: data.Expires,
 					ContentLength: data.ContentLength,
-					Body: data.Body
+					Body: data.Body,
+					ContentType: data.ContentType
 				};
 			})
 			.catch(err => {

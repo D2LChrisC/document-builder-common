@@ -66,14 +66,15 @@ var FileStorage = function () {
 
 	_createClass(FileStorage, [{
 		key: 'putFile',
-		value: function putFile(key, filename) {
+		value: function putFile(key, filename, contentType) {
 			var _this = this;
 
 			return openReadStream(filename).then(function (stream) {
 				return _this.s3.putObjectAsync({
 					Bucket: _this.bucket,
 					Key: key,
-					Body: stream
+					Body: stream,
+					ContentType: contentType
 				});
 			});
 		}
@@ -97,7 +98,8 @@ var FileStorage = function () {
 					LastModified: data.LastModified,
 					Expires: data.Expires,
 					ContentLength: data.ContentLength,
-					Body: data.Body
+					Body: data.Body,
+					ContentType: data.ContentType
 				};
 			}).catch(function (err) {
 				if (/.*NoSuchKey.*/i.test(err)) {
