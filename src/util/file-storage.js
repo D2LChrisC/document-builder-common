@@ -54,12 +54,17 @@ class FileStorage {
 			});
 	}
 
+	/**
+	 * Resets file expiration. It changes LastModified file property.
+	 * Please PAY ATTENTION, it clears all metadata values, except ContentType
+	 */
 	resetFileExpiration(key) {
 		return this.s3
 			.copyObjectAsync({
 				Bucket: this.bucket,
 				CopySource: `${this.bucket}/${key}`,
-				Key: key
+				Key: key,
+				MetadataDirective: 'REPLACE'
 			});
 	}
 
