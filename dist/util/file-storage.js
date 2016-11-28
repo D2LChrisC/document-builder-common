@@ -66,19 +66,32 @@ var FileStorage = function () {
 
 	_createClass(FileStorage, [{
 		key: 'putFile',
-		value: function putFile(key, filename, expiration, contentType) {
+		value: function putFile(key, filename, contentType) {
 			var _this = this;
-
-			var expirationTime = new Date(new Date(Date.now()).getTime() + expiration * 1000);
 
 			return openReadStream(filename).then(function (stream) {
 				return _this.s3.putObjectAsync({
 					Bucket: _this.bucket,
 					Key: key,
 					Body: stream,
-					Expires: expirationTime,
 					ContentType: contentType
 				});
+			});
+		}
+
+		/**
+   * Resets file expiration. It changes LastModified file property.
+   * Please PAY ATTENTION, it clears all metadata values, except ContentType
+   */
+
+	}, {
+		key: 'resetFileExpiration',
+		value: function resetFileExpiration(key) {
+			return this.s3.copyObjectAsync({
+				Bucket: this.bucket,
+				CopySource: this.bucket + '/' + key,
+				Key: key,
+				MetadataDirective: 'REPLACE'
 			});
 		}
 	}, {
@@ -90,6 +103,7 @@ var FileStorage = function () {
 			}).then(function (data) {
 				return {
 					LastModified: data.LastModified,
+					Expires: data.Expires,
 					ContentLength: data.ContentLength,
 					Body: data.Body,
 					ContentType: data.ContentType

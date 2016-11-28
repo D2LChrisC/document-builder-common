@@ -19,7 +19,7 @@ gulp.task('coverage', () => {
 		.src(['src/**/*.js'])
 		.pipe(istanbul({ instrumenter: isparta.Instrumenter }))
 		.pipe(istanbul.hookRequire());
-})
+});
 
 gulp.task('test', ['lint', 'coverage'], () => {
 	return gulp

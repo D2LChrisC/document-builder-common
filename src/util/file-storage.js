@@ -42,19 +42,29 @@ class FileStorage {
 		Promise.promisifyAll(this.s3);
 	}
 
-	putFile(key, filename, expiration, contentType) {
-		const expirationTime = new Date(
-			new Date(Date.now()).getTime() + (expiration * 1000));
-
+	putFile(key, filename, contentType) {
 		return openReadStream(filename)
 			.then(stream => {
 				return this.s3.putObjectAsync({
 					Bucket: this.bucket,
 					Key: key,
 					Body: stream,
-					Expires: expirationTime,
 					ContentType: contentType
 				});
+			});
+	}
+
+	/**
+	 * Resets file expiration. It changes LastModified file property.
+	 * Please PAY ATTENTION, it clears all metadata values, except ContentType
+	 */
+	resetFileExpiration(key) {
+		return this.s3
+			.copyObjectAsync({
+				Bucket: this.bucket,
+				CopySource: `${this.bucket}/${key}`,
+				Key: key,
+				MetadataDirective: 'REPLACE'
 			});
 	}
 
@@ -67,6 +77,7 @@ class FileStorage {
 			.then(data => {
 				return {
 					LastModified: data.LastModified,
+					Expires: data.Expires,
 					ContentLength: data.ContentLength,
 					Body: data.Body,
 					ContentType: data.ContentType
