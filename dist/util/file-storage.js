@@ -81,16 +81,18 @@ var FileStorage = function () {
 
 		/**
    * Resets file expiration. It changes LastModified file property.
-   * Please PAY ATTENTION, it clears all metadata values, except ContentType
+   * Please PAY ATTENTION, it clears all `Metadata` values and `ContentType`
    */
 
 	}, {
 		key: 'resetFileExpiration',
-		value: function resetFileExpiration(key) {
+		value: function resetFileExpiration(key, contentType, metadata) {
 			return this.s3.copyObjectAsync({
 				Bucket: this.bucket,
 				CopySource: this.bucket + '/' + key,
 				Key: key,
+				ContentType: contentType,
+				Metadata: metadata,
 				MetadataDirective: 'REPLACE'
 			});
 		}
