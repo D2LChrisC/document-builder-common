@@ -19,7 +19,7 @@ module.exports = function (database) {
 		rangeKey: 'format',
 		schema: {
 			checksum: _joi2.default.string().required(),
-			format: _joi2.default.string().required().regex(/^(pdf|txt)$/),
+			format: _joi2.default.string().required().regex(/^(pdf|html)$/),
 			createdAt: _joi2.default.number().required().integer(),
 			expires: _joi2.default.number().required().integer(),
 			status: _joi2.default.string().required().regex(/^(Complete|In progress|Failed|Pending)$/),

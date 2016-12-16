@@ -5,7 +5,7 @@ const supportedFormats = {
 		'.ppt', '.pps', '.pptx', '.ppsx', '.odp',
 		'.xls', '.xlsx'
 	],
-	'txt': [
+	'html': [
 		'', '.doc', '.docx', '.rtf', '.odt'
 	]
 };

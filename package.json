@@ -52,7 +52,6 @@
     "bunyan": "^1.8.1",
     "espree": "^3.1.7",
     "joi": "^9.0.4",
-    "sqs-consumer": "^3.3.0",
     "vogels": "^2.2.0",
     "bunyan-logstash-tcp": "^0.3.4"
   }
