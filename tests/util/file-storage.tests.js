@@ -16,13 +16,15 @@ const awsConfig = {
 AWS.config.update(awsConfig);
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+const encryptionKeyId = 'b3257d00-170a-40ee-b374-ab923dbcb606';
 const testBucket = 'my-test-bucket';
 const storage = new FileStorage(
 	testBucket,
 	'key',
 	'secret',
 	'us-west-1',
-	'http://localhost:4569');
+	'http://localhost:4569',
+	encryptionKeyId);
 
 Promise.promisifyAll(s3);
 

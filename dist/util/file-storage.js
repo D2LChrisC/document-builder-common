@@ -37,7 +37,7 @@ function openReadStream(filename) {
 }
 
 var FileStorage = function () {
-	function FileStorage(bucket, accessKey, accessSecret, region, endpoint) {
+	function FileStorage(bucket, accessKey, accessSecret, region, endpoint, encryptKey) {
 		_classCallCheck(this, FileStorage);
 
 		if (!bucket) {
@@ -62,6 +62,8 @@ var FileStorage = function () {
 
 		this.s3 = new _awsSdk2.default.S3({ apiVersion: '2006-03-01' });
 		_bluebird2.default.promisifyAll(this.s3);
+
+		this.encryptKey = encryptKey;
 	}
 
 	_createClass(FileStorage, [{
@@ -74,7 +76,9 @@ var FileStorage = function () {
 					Bucket: _this.bucket,
 					Key: key,
 					Body: stream,
-					ContentType: contentType
+					ContentType: contentType,
+					ServerSideEncryption: 'aws:kms',
+					SSEKMSKeyId: _this.encryptKey
 				});
 			});
 		}
@@ -93,7 +97,9 @@ var FileStorage = function () {
 				Key: key,
 				ContentType: contentType,
 				Metadata: metadata,
-				MetadataDirective: 'REPLACE'
+				MetadataDirective: 'REPLACE',
+				ServerSideEncryption: 'aws:kms',
+				SSEKMSKeyId: this.encryptKey
 			});
 		}
 	}, {

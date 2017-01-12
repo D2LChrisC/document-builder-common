@@ -17,7 +17,7 @@ function openReadStream(filename) {
 }
 
 class FileStorage {
-	constructor(bucket, accessKey, accessSecret, region, endpoint) {
+	constructor(bucket, accessKey, accessSecret, region, endpoint, encryptKey) {
 		if (!bucket) {
 			throw new TypeError('Bucket name must be specified in constructor.');
 		}
@@ -40,6 +40,8 @@ class FileStorage {
 
 		this.s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 		Promise.promisifyAll(this.s3);
+
+		this.encryptKey = encryptKey;
 	}
 
 	putFile(key, filename, contentType) {
@@ -49,7 +51,9 @@ class FileStorage {
 					Bucket: this.bucket,
 					Key: key,
 					Body: stream,
-					ContentType: contentType
+					ContentType: contentType,
+					ServerSideEncryption: 'aws:kms',
+					SSEKMSKeyId: this.encryptKey
 				});
 			});
 	}
@@ -66,7 +70,9 @@ class FileStorage {
 				Key: key,
 				ContentType: contentType,
 				Metadata: metadata,
-				MetadataDirective: 'REPLACE'
+				MetadataDirective: 'REPLACE',
+				ServerSideEncryption: 'aws:kms',
+				SSEKMSKeyId: this.encryptKey
 			});
 	}
 
