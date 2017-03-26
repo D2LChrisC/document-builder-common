@@ -110,6 +110,45 @@ describe('File storgage utility', () => {
 				});
 		});
 
+		it('will use multipart uploading if the file is large', done => {
+			const key = 'large-file';
+			const mutlipartUploadSpy = sinon
+				.stub(storage, 'multipartUpload')
+				.returns(Bluebird.resolve());
+
+			storage
+				.putFile(
+					key,
+					'tests/testAssets/gameRules.pdf')
+				.then(() => {
+					expect(mutlipartUploadSpy.calledOnce).to.be.true;
+					done();
+				})
+				.catch(err => done(err))
+				.finally(() => {
+					mutlipartUploadSpy.restore();
+				});
+		});
+
+		it('will use standard uploading if the file is small', done => {
+			const key = 'small-file';
+			const mutlipartUploadSpy = sinon
+				.stub(storage, 'multipartUpload')
+				.returns(Bluebird.resolve());
+
+			storage
+				.putFile(
+					key,
+					'tests/testAssets/diving-checklist.docx')
+				.then(() => {
+					expect(mutlipartUploadSpy.called).to.be.false;
+					done();
+				})
+				.catch(err => done(err))
+				.finally(() => {
+					mutlipartUploadSpy.restore();
+				});
+		});
 	});
 
 	describe('getFile function', () => {

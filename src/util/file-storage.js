@@ -136,6 +136,22 @@ class FileStorage {
 	}
 
 	putFile(key, filename, contentType) {
+		const oneMB = 1048576;
+
+		try {
+			const stat = fs.statSync(filename);
+
+			if (stat.size > oneMB) {
+				// If the file is larger than 1MB, use multipart uploading to
+				// send in 1MB chunks. Uploading to S3 is very prone to failing
+				// when uploading large files all in one shot!
+
+				return this.multipartUpload(key, filename, contentType, oneMB);
+			}
+		} catch (statErr) {
+			return Bluebird.reject(statErr);
+		}
+
 		return openReadStream(filename)
 			.then(stream => {
 				return this.s3.putObjectAsync({
