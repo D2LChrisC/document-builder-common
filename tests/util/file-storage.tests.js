@@ -2,9 +2,10 @@ import AWS from 'aws-sdk';
 import { expect } from 'chai';
 import FileStorage from '../../src/util/file-storage';
 import fs from 'fs';
-import Promise from 'bluebird';
+import Bluebird from 'bluebird';
+import sinon from 'sinon';
 
-Promise.promisifyAll(fs);
+Bluebird.promisifyAll(fs);
 
 const awsConfig = {
 	s3ForcePathStyle: true,
@@ -26,21 +27,7 @@ const storage = new FileStorage(
 	'http://localhost:4569',
 	encryptionKeyId);
 
-Promise.promisifyAll(s3);
-
-function openReadStream(filename) {
-	return new Promise((resolve, reject) => {
-		const stream = fs.createReadStream(filename);
-
-		stream.on('open', () => {
-			resolve(stream);
-		});
-
-		stream.on('error', err => {
-			reject(err);
-		});
-	});
-}
+Bluebird.promisifyAll(s3);
 
 describe('File storgage utility', () => {
 
@@ -81,14 +68,13 @@ describe('File storgage utility', () => {
 
 		it('can overwrite a file', done => {
 			const key = 'diving-overwrite';
+			const stream = fs.createReadStream('tests/testAssets/BJCP-2015-Styleguide.docx');
 
-			openReadStream('tests/testAssets/BJCP-2015-Styleguide.docx')
-				.then(stream => {
-					return s3.uploadAsync({
-						Bucket: testBucket,
-						Key: key,
-						Body: stream
-					});
+			s3
+				.uploadAsync({
+					Bucket: testBucket,
+					Key: key,
+					Body: stream
 				})
 				.then(() => {
 					return storage.putFile(
@@ -130,21 +116,20 @@ describe('File storgage utility', () => {
 
 		it('will retrieve a file from s3', done => {
 			const key = 'retrieve-me';
+			const stream = fs.createReadStream('tests/testAssets/diving-checklist.docx');
 
-			openReadStream('tests/testAssets/diving-checklist.docx')
-				.then(stream => {
-					return s3.uploadAsync({
-						Bucket: testBucket,
-						Key: key,
-						Body: stream
-					});
+			s3
+				.uploadAsync({
+					Bucket: testBucket,
+					Key: key,
+					Body: stream
 				})
 				.then(() => {
 					return storage.getFile(key);
 				})
 				.then(file => {
 					expect(file).to.exist;
-					expect(file.ContentLength).to.equal('13631');
+					expect(file.ContentLength).to.equal(13631);
 					expect(file.Body).to.exist;
 					done();
 				})
@@ -168,14 +153,13 @@ describe('File storgage utility', () => {
 
 		it('will delete a file from S3', done => {
 			const key = 'delete-me';
+			const stream = fs.createReadStream('tests/testAssets/diving-checklist.docx');
 
-			openReadStream('tests/testAssets/diving-checklist.docx')
-				.then(stream => {
-					return s3.uploadAsync({
-						Bucket: testBucket,
-						Key: key,
-						Body: stream
-					});
+			s3
+				.uploadAsync({
+					Bucket: testBucket,
+					Key: key,
+					Body: stream
 				})
 				.then(() => {
 					return storage.deleteFile(key);
@@ -209,14 +193,13 @@ describe('File storgage utility', () => {
 
 		it('will return a signed URL for a file', done => {
 			const key = 'get-my-url';
+			const stream = fs.createReadStream('tests/testAssets/diving-checklist.docx');
 
-			openReadStream('tests/testAssets/diving-checklist.docx')
-				.then(stream => {
-					return s3.uploadAsync({
-						Bucket: testBucket,
-						Key: key,
-						Body: stream
-					});
+			s3
+				.uploadAsync({
+					Bucket: testBucket,
+					Key: key,
+					Body: stream
 				})
 				.then(() => {
 					return storage.getLinkToFile(key);
@@ -237,6 +220,153 @@ describe('File storgage utility', () => {
 					done();
 				})
 				.catch(err => done(err));
+		});
+
+	});
+
+	describe('multipartUpload function', () => {
+
+		const mimeType = 'application/pdf';
+		const chunkSize = 204800;
+
+		let s3Mock, s3AbortSpy;
+
+		afterEach(() => {
+			if (s3Mock) {
+				s3Mock.restore();
+				s3Mock = null;
+			}
+
+			if (s3AbortSpy) {
+				s3AbortSpy.restore();
+				s3AbortSpy = null;
+			}
+		});
+
+		it('will fail if file does not exist', done => {
+			storage.multipartUpload(
+				'does-not-exist',
+				'tests/testAssets/not-there.pptx',
+				mimeType,
+				chunkSize)
+				.then(() => {
+					done('Call was not meant to succeed');
+				})
+				.catch(err => {
+					expect(err.code).to.equal('ENOENT');
+					done();
+				});
+		});
+
+		it('will fail if multipart upload cannot be created in S3', done => {
+			s3Mock = sinon
+				.stub(storage.s3, 'createMultipartUploadAsync')
+				.returns(Bluebird.reject('Fail'));
+
+			storage.multipartUpload(
+				'game-rules',
+				'tests/testAssets/gameRules.pdf',
+				mimeType,
+				chunkSize)
+				.then(() => {
+					done('Call was not meant to succeed');
+				})
+				.catch(err => {
+					expect(err).to.equal('Fail');
+					done();
+				});
+		});
+
+		it('will upload file in multiple pieces', done => {
+			let bytes = 0;
+			let expectedPartNumber = 1;
+			const key = 'game-rules';
+
+			const uploadPartStub = sinon
+				.stub(storage.s3, 'uploadPartAsync')
+				.callsFake(opts => {
+					bytes += opts.Body.length;
+					expect(opts.Bucket).to.equal(testBucket);
+					expect(opts.Key).to.equal(key);
+					expect(opts.PartNumber).to.equal(expectedPartNumber++);
+					expect(opts.UploadId).to.exist;
+
+					return Bluebird.resolve();
+				});
+
+			const completeUploadStub = sinon
+				.stub(storage.s3, 'completeMultipartUploadAsync')
+				.callsFake(opts => {
+					expect(opts.Bucket).to.equal(testBucket);
+					expect(opts.Key).to.equal(key);
+					expect(opts.UploadId).to.exist;
+
+					return Bluebird.resolve();
+				});
+
+			storage.multipartUpload(
+				key,
+				'tests/testAssets/gameRules.pdf',
+				mimeType,
+				chunkSize)
+			.then(() => {
+				expect(fs.statSync('tests/testAssets/gameRules.pdf').size).to.equal(bytes);
+				done();
+			})
+			.catch(done)
+			.finally(() => {
+				uploadPartStub.restore();
+				completeUploadStub.restore();
+			});
+		});
+
+		it('will fail if a part cannot be uploaded.', done => {
+			s3Mock = sinon
+				.stub(storage.s3, 'uploadPartAsync')
+				.callsFake(() => {
+					return Bluebird.reject('Fail');
+				});
+
+			s3AbortSpy = sinon.spy(storage.s3, 'abortMultipartUploadAsync');
+
+			storage.multipartUpload(
+				'game-rules',
+				'tests/testAssets/gameRules.pdf',
+				mimeType,
+				chunkSize)
+				.then(() => {
+					done('Call was not meant to succeed');
+				})
+				.catch(err => {
+					expect(err).to.equal('Fail');
+					expect(s3AbortSpy.calledOnce).to.be.true;
+					done();
+				});
+		});
+
+		it('will fail if the multipart upload cannot be finalized', done => {
+			s3Mock = sinon
+				.stub(storage.s3, 'completeMultipartUploadAsync')
+				.callsFake(() => {
+					return Bluebird.reject('Fail');
+				});
+
+			s3AbortSpy = sinon.spy(storage.s3, 'abortMultipartUploadAsync');
+
+			storage.multipartUpload(
+				'game-rules',
+				'tests/testAssets/gameRules.pdf',
+				mimeType,
+				chunkSize)
+				.then(() => {
+					done('Call was not meant to succeed');
+				})
+				.catch(err => {
+					expect(err).to.equal('Fail');
+					expect(s3AbortSpy.calledOnce).to.be.true;
+					done();
+				});
+
 		});
 
 	});

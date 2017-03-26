@@ -24,7 +24,7 @@ gulp.task('coverage', () => {
 gulp.task('test', ['lint', 'coverage'], () => {
 	return gulp
 		.src('tests/**/*.tests.js')
-		.pipe(mocha({ reporter: 'spec' }))
+		.pipe(mocha({ reporter: 'spec', timeout: 5000 }))
 		.pipe(istanbul.writeReports({ reporters: [ 'lcov' ]}));
 });
 
