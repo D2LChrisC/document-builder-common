@@ -1,9 +1,9 @@
 import AWS from 'aws-sdk';
 import fs from 'fs';
-import Promise from 'bluebird';
+import Bluebird from 'bluebird';
 
 function openReadStream(filename) {
-	return new Promise((resolve, reject) => {
+	return new Bluebird((resolve, reject) => {
 		const stream = fs.createReadStream(filename);
 
 		stream.on('open', () => {
@@ -12,6 +12,97 @@ function openReadStream(filename) {
 
 		stream.on('error', err => {
 			reject(err);
+		});
+	});
+}
+
+function doMultipartUpload(opts) {
+	return new Bluebird((resolve, reject) => {
+
+		let partIndex = 1;
+		let buffer;
+		let abort = false;
+
+		const onFailure = err => {
+			opts.s3.abortMultipartUploadAsync({
+				Bucket: opts.bucket,
+				Key: opts.key,
+				UploadId: opts.uploadId
+			})
+			.catch(abortErr => {
+				reject({
+					error: 'Could not abort a failed multipart upload to S3.',
+					reason: abortErr,
+					originalFailure: err
+				});
+			})
+			.finally(() => {
+				reject(err);
+			});
+		};
+
+		const completeUpload = () => {
+			opts.s3.completeMultipartUploadAsync({
+				Bucket: opts.bucket,
+				Key: opts.key,
+				UploadId: opts.uploadId
+			})
+			.then(() => {
+				resolve();
+			})
+			.catch(onFailure);
+		};
+
+		const unpauseStream = () => {
+			if (!abort) {
+				opts.stream.resume();
+			}
+		};
+
+		opts.stream.on('error', streamErr => {
+			abort = true;
+			reject(streamErr);
+		});
+
+		opts.stream.on('data', data => {
+			if (!buffer) {
+				buffer = data;
+			} else {
+				buffer = Buffer.concat([buffer, data]);
+			}
+
+			if (buffer.length >= opts.chunkSize) {
+				opts.stream.pause();
+				opts.s3.uploadPartAsync({
+					Bucket: opts.bucket,
+					Key: opts.key,
+					PartNumber: partIndex,
+					UploadId: opts.uploadId,
+					Body: buffer
+				})
+				.then(() => {
+					partIndex++;
+					buffer = null;
+					unpauseStream();
+				})
+				.catch(onFailure);
+			}
+		});
+
+		opts.stream.on('end', () => {
+			if (buffer) {
+				opts.s3.uploadPartAsync({
+					Bucket: opts.bucket,
+					Key: opts.key,
+					PartNumber: partIndex,
+					UploadId: opts.uploadId,
+					Body: buffer
+				})
+				.then(completeUpload)
+				.catch(reject);
+			} else {
+				completeUpload();
+			}
 		});
 	});
 }
@@ -39,12 +130,28 @@ class FileStorage {
 		AWS.config.update(awsConfig);
 
 		this.s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-		Promise.promisifyAll(this.s3);
+		Bluebird.promisifyAll(this.s3);
 
 		this.encryptKey = encryptKey;
 	}
 
 	putFile(key, filename, contentType) {
+		const oneMB = 1048576;
+
+		try {
+			const stat = fs.statSync(filename);
+
+			if (stat.size > oneMB) {
+				// If the file is larger than 1MB, use multipart uploading to
+				// send in 1MB chunks. Uploading to S3 is very prone to failing
+				// when uploading large files all in one shot!
+
+				return this.multipartUpload(key, filename, contentType, oneMB);
+			}
+		} catch (statErr) {
+			return Bluebird.reject(statErr);
+		}
+
 		return openReadStream(filename)
 			.then(stream => {
 				return this.s3.putObjectAsync({
@@ -53,9 +160,50 @@ class FileStorage {
 					Body: stream,
 					ContentType: contentType,
 					ServerSideEncryption: 'aws:kms',
-					SSEKMSKeyId: this.encryptKey
+					SSEKMSKeyId: this.encryptKey,
+					StorageClass: 'REDUCED_REDUNDANCY'
 				});
 			});
+	}
+
+	multipartUpload(key, filename, contentType, chunkSize) {
+		try {
+			fs.statSync(filename);
+		} catch (statErr) {
+			return Bluebird.reject(statErr);
+		}
+
+		return new Bluebird((resolve, reject) => {
+			let uploadId;
+
+			const stream = fs.createReadStream(filename);
+
+			stream.once('open', () => {
+				this.s3.createMultipartUploadAsync({
+					Bucket: this.bucket,
+					Key: key,
+					ContentType: contentType,
+					StorageClass: 'REDUCED_REDUNDANCY',
+					ServerSideEncryption: 'aws:kms',
+					SSEKMSKeyId: this.encryptKey
+				})
+				.then(result => {
+					uploadId = result.UploadId;
+
+					return doMultipartUpload({
+						s3: this.s3,
+						bucket: this.bucket,
+						key: key,
+						uploadId: uploadId,
+						contentType: contentType,
+						chunkSize: chunkSize,
+						stream: stream
+					});
+				})
+				.then(resolve)
+				.catch(reject);
+			});
+		});
 	}
 
 	/**

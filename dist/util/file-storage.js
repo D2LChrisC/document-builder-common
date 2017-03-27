@@ -36,6 +36,89 @@ function openReadStream(filename) {
 	});
 }
 
+function doMultipartUpload(opts) {
+	return new _bluebird2.default(function (resolve, reject) {
+
+		var partIndex = 1;
+		var buffer = void 0;
+		var abort = false;
+
+		var onFailure = function onFailure(err) {
+			opts.s3.abortMultipartUploadAsync({
+				Bucket: opts.bucket,
+				Key: opts.key,
+				UploadId: opts.uploadId
+			}).catch(function (abortErr) {
+				reject({
+					error: 'Could not abort a failed multipart upload to S3.',
+					reason: abortErr,
+					originalFailure: err
+				});
+			}).finally(function () {
+				reject(err);
+			});
+		};
+
+		var completeUpload = function completeUpload() {
+			opts.s3.completeMultipartUploadAsync({
+				Bucket: opts.bucket,
+				Key: opts.key,
+				UploadId: opts.uploadId
+			}).then(function () {
+				resolve();
+			}).catch(onFailure);
+		};
+
+		var unpauseStream = function unpauseStream() {
+			if (!abort) {
+				opts.stream.resume();
+			}
+		};
+
+		opts.stream.on('error', function (streamErr) {
+			abort = true;
+			reject(streamErr);
+		});
+
+		opts.stream.on('data', function (data) {
+			if (!buffer) {
+				buffer = data;
+			} else {
+				buffer = Buffer.concat([buffer, data]);
+			}
+
+			if (buffer.length >= opts.chunkSize) {
+				opts.stream.pause();
+				opts.s3.uploadPartAsync({
+					Bucket: opts.bucket,
+					Key: opts.key,
+					PartNumber: partIndex,
+					UploadId: opts.uploadId,
+					Body: buffer
+				}).then(function () {
+					partIndex++;
+					buffer = null;
+					unpauseStream();
+				}).catch(onFailure);
+			}
+		});
+
+		opts.stream.on('end', function () {
+			if (buffer) {
+				opts.s3.uploadPartAsync({
+					Bucket: opts.bucket,
+					Key: opts.key,
+					PartNumber: partIndex,
+					UploadId: opts.uploadId,
+					Body: buffer
+				}).then(completeUpload).catch(reject);
+			} else {
+				completeUpload();
+			}
+		});
+	});
+}
+
 var FileStorage = function () {
 	function FileStorage(bucket, accessKey, accessSecret, region, endpoint, encryptKey) {
 		_classCallCheck(this, FileStorage);
@@ -71,6 +154,22 @@ var FileStorage = function () {
 		value: function putFile(key, filename, contentType) {
 			var _this = this;
 
+			var oneMB = 1048576;
+
+			try {
+				var stat = _fs2.default.statSync(filename);
+
+				if (stat.size > oneMB) {
+					// If the file is larger than 1MB, use multipart uploading to
+					// send in 1MB chunks. Uploading to S3 is very prone to failing
+					// when uploading large files all in one shot!
+
+					return this.multipartUpload(key, filename, contentType, oneMB);
+				}
+			} catch (statErr) {
+				return _bluebird2.default.reject(statErr);
+			}
+
 			return openReadStream(filename).then(function (stream) {
 				return _this.s3.putObjectAsync({
 					Bucket: _this.bucket,
@@ -78,7 +177,48 @@ var FileStorage = function () {
 					Body: stream,
 					ContentType: contentType,
 					ServerSideEncryption: 'aws:kms',
-					SSEKMSKeyId: _this.encryptKey
+					SSEKMSKeyId: _this.encryptKey,
+					StorageClass: 'REDUCED_REDUNDANCY'
+				});
+			});
+		}
+	}, {
+		key: 'multipartUpload',
+		value: function multipartUpload(key, filename, contentType, chunkSize) {
+			var _this2 = this;
+
+			try {
+				_fs2.default.statSync(filename);
+			} catch (statErr) {
+				return _bluebird2.default.reject(statErr);
+			}
+
+			return new _bluebird2.default(function (resolve, reject) {
+				var uploadId = void 0;
+
+				var stream = _fs2.default.createReadStream(filename);
+
+				stream.once('open', function () {
+					_this2.s3.createMultipartUploadAsync({
+						Bucket: _this2.bucket,
+						Key: key,
+						ContentType: contentType,
+						StorageClass: 'REDUCED_REDUNDANCY',
+						ServerSideEncryption: 'aws:kms',
+						SSEKMSKeyId: _this2.encryptKey
+					}).then(function (result) {
+						uploadId = result.UploadId;
+
+						return doMultipartUpload({
+							s3: _this2.s3,
+							bucket: _this2.bucket,
+							key: key,
+							uploadId: uploadId,
+							contentType: contentType,
+							chunkSize: chunkSize,
+							stream: stream
+						});
+					}).then(resolve).catch(reject);
 				});
 			});
 		}
@@ -141,7 +281,7 @@ var FileStorage = function () {
 	}, {
 		key: 'getLinkToFile',
 		value: function getLinkToFile(key) {
-			var _this2 = this;
+			var _this3 = this;
 
 			return this.s3.headObjectAsync({
 				Bucket: this.bucket,
@@ -157,8 +297,8 @@ var FileStorage = function () {
 					return null;
 				}
 
-				return _this2.s3.getSignedUrlAsync('getObject', {
-					Bucket: _this2.bucket,
+				return _this3.s3.getSignedUrlAsync('getObject', {
+					Bucket: _this3.bucket,
 					Key: key
 				});
 			});
