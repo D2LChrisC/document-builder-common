@@ -4,7 +4,7 @@ const supportedFormats = {
 		'.doc', '.docx', '.rtf', '.odt',
 		'.ppt', '.pps', '.pptx', '.ppsx', '.odp',
 		'.xls', '.xlsx',
-		'.txt', 
+		'.txt',
 		'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.gif'
 	],
 	'html': [
