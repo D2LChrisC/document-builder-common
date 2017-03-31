@@ -3,10 +3,15 @@ const supportedFormats = {
 		'',
 		'.doc', '.docx', '.rtf', '.odt',
 		'.ppt', '.pps', '.pptx', '.ppsx', '.odp',
-		'.xls', '.xlsx'
+		'.xls', '.xlsx',
+		'.txt', 
+		'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.gif'
 	],
 	'html': [
-		'', '.doc', '.docx', '.rtf', '.odt'
+		'',
+		'.doc', '.docx', '.rtf', '.odt',
+		'.ppt', '.pps', '.pptx', '.ppsx', '.odp',
+		'.xls', '.xlsx'
 	]
 };
 
