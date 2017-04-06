@@ -22,6 +22,7 @@ function doMultipartUpload(opts) {
 		let partIndex = 1;
 		let buffer;
 		let abort = false;
+		const map = [];
 
 		const onFailure = err => {
 			opts.s3.abortMultipartUploadAsync({
@@ -45,7 +46,10 @@ function doMultipartUpload(opts) {
 			opts.s3.completeMultipartUploadAsync({
 				Bucket: opts.bucket,
 				Key: opts.key,
-				UploadId: opts.uploadId
+				UploadId: opts.uploadId,
+				MultipartUpload: {
+					Parts: map
+				}
 			})
 			.then(() => {
 				resolve();
@@ -78,9 +82,14 @@ function doMultipartUpload(opts) {
 					Key: opts.key,
 					PartNumber: partIndex,
 					UploadId: opts.uploadId,
-					Body: buffer
+					Body: buffer,
+					ContentLength: buffer.length
 				})
-				.then(() => {
+				.then(partResult => {
+					map.push({
+						ETag: partResult.ETag,
+						PartNumber: partIndex
+					});
 					partIndex++;
 					buffer = null;
 					unpauseStream();
@@ -96,9 +105,16 @@ function doMultipartUpload(opts) {
 					Key: opts.key,
 					PartNumber: partIndex,
 					UploadId: opts.uploadId,
-					Body: buffer
+					Body: buffer,
+					ContentLength: buffer.length
 				})
-				.then(completeUpload)
+				.then(partResult => {
+					map.push({
+						ETag: partResult.ETag,
+						PartNumber: partIndex
+					});
+					completeUpload();
+				})
 				.catch(reject);
 			} else {
 				completeUpload();
@@ -136,17 +152,17 @@ class FileStorage {
 	}
 
 	putFile(key, filename, contentType) {
-		const oneMB = 1048576;
+		const fiveMB = 5242880;
 
 		try {
 			const stat = fs.statSync(filename);
 
-			if (stat.size > oneMB) {
-				// If the file is larger than 1MB, use multipart uploading to
-				// send in 1MB chunks. Uploading to S3 is very prone to failing
+			if (stat.size > fiveMB) {
+				// If the file is larger than 5MB, use multipart uploading to
+				// send in 5MB chunks. Uploading to S3 is very prone to failing
 				// when uploading large files all in one shot!
 
-				return this.multipartUpload(key, filename, contentType, oneMB);
+				return this.multipartUpload(key, filename, contentType, fiveMB);
 			}
 		} catch (statErr) {
 			return Bluebird.reject(statErr);

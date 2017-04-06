@@ -330,7 +330,7 @@ describe('File storgage utility', () => {
 					expect(opts.PartNumber).to.equal(expectedPartNumber++);
 					expect(opts.UploadId).to.exist;
 
-					return Bluebird.resolve();
+					return Bluebird.resolve({ ETag: '7777', PartNumber: opts.PartNumber });
 				});
 
 			const completeUploadStub = sinon
