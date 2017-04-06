@@ -42,6 +42,7 @@ function doMultipartUpload(opts) {
 		var partIndex = 1;
 		var buffer = void 0;
 		var abort = false;
+		var map = [];
 
 		var onFailure = function onFailure(err) {
 			opts.s3.abortMultipartUploadAsync({
@@ -63,7 +64,10 @@ function doMultipartUpload(opts) {
 			opts.s3.completeMultipartUploadAsync({
 				Bucket: opts.bucket,
 				Key: opts.key,
-				UploadId: opts.uploadId
+				UploadId: opts.uploadId,
+				MultipartUpload: {
+					Parts: map
+				}
 			}).then(function () {
 				resolve();
 			}).catch(onFailure);
@@ -94,8 +98,13 @@ function doMultipartUpload(opts) {
 					Key: opts.key,
 					PartNumber: partIndex,
 					UploadId: opts.uploadId,
-					Body: buffer
-				}).then(function () {
+					Body: buffer,
+					ContentLength: buffer.length
+				}).then(function (partResult) {
+					map.push({
+						ETag: partResult.ETag,
+						PartNumber: partIndex
+					});
 					partIndex++;
 					buffer = null;
 					unpauseStream();
@@ -110,8 +119,15 @@ function doMultipartUpload(opts) {
 					Key: opts.key,
 					PartNumber: partIndex,
 					UploadId: opts.uploadId,
-					Body: buffer
-				}).then(completeUpload).catch(reject);
+					Body: buffer,
+					ContentLength: buffer.length
+				}).then(function (partResult) {
+					map.push({
+						ETag: partResult.ETag,
+						PartNumber: partIndex
+					});
+					completeUpload();
+				}).catch(reject);
 			} else {
 				completeUpload();
 			}
@@ -154,17 +170,17 @@ var FileStorage = function () {
 		value: function putFile(key, filename, contentType) {
 			var _this = this;
 
-			var oneMB = 1048576;
+			var fiveMB = 5242880;
 
 			try {
 				var stat = _fs2.default.statSync(filename);
 
-				if (stat.size > oneMB) {
-					// If the file is larger than 1MB, use multipart uploading to
-					// send in 1MB chunks. Uploading to S3 is very prone to failing
+				if (stat.size > fiveMB) {
+					// If the file is larger than 5MB, use multipart uploading to
+					// send in 5MB chunks. Uploading to S3 is very prone to failing
 					// when uploading large files all in one shot!
 
-					return this.multipartUpload(key, filename, contentType, oneMB);
+					return this.multipartUpload(key, filename, contentType, fiveMB);
 				}
 			} catch (statErr) {
 				return _bluebird2.default.reject(statErr);
