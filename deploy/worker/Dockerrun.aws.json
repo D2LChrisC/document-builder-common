@@ -1,0 +1,12 @@
+{
+	"AWSEBDockerrunVersion": "1",
+	"Image": {
+		"Name": "${aws_account}.dkr.ecr.us-east-1.amazonaws.com/docbuilder/worker",
+		"Update": "true"
+	},
+	"Ports": [
+		{
+			"ContainerPort": "24028"
+		}
+	]
+}
