@@ -19,6 +19,7 @@ docker tag $4:latest $1.dkr.ecr.us-east-1.amazonaws.com/$4:latest
 docker push $1.dkr.ecr.us-east-1.amazonaws.com/$4:latest
 
 echo "Getting Terraform assets from S3..."
+# Package and upload the application versions for ElasticBeanstalk.
 mkdir temp && cd temp/
 cp -r ../service/. ./
 sed -i -e s/aws_account/$1/g Dockerrun.aws.json
@@ -30,12 +31,12 @@ sed -i -e s/aws_account/$1/g Dockerrun.aws.json
 zip -rv ../terraform/worker.zip .ebextensions/ Dockerrun.aws.json
 cd .. && rm -rf temp/
 
-aws s3 sync ./terraform s3://d2l-docbuilder-terraform-$1 
-# cp -r $4/* terraform/
-# sed -i -e 's/${aws_account}/$4/g' terraform/Dockerrun.aws.json
-# zip -rv terraform/$4.zip .ebextensions/ Dockerrun.aws.json
-# aws s3 sync s3://d2l-docbuilder-terraform-$1 ./terraform
-# unzip ./terraform/terraform.zip -d ./terraform
+aws s3 mv ./terraform/service.zip s3://d2l-docbuilder-terraform-$1/service.zip --sse aws:kms --sse-kms-key-id $5
+aws s3 mv ./terraform/worker.zip s3://d2l-docbuilder-terraform-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
+
+# Pull down the state files to perform the conversion.
+aws s3 sync s3://d2l-docbuilder-terraform-$1 ./terraform
+unzip ./terraform/terraform.zip -d ./terraform
 
 echo "Deploying environments..."
 cd terraform
