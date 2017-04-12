@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+echo "Account ID: " $1
+echo "Access Key: " $2
+echo "Repo: " $4
+echo "KMS Key ID: " $5 
+
 echo "Creating application version package..."
 
 # set AWS credentials
@@ -15,8 +20,8 @@ $(aws ecr get-login --region us-east-1)
 
 # tag and publish our latest stable build
 echo "Tagging and pushing docker image..."
-docker tag $4:latest $1.dkr.ecr.us-east-1.amazonaws.com/$4:latest
-docker push $1.dkr.ecr.us-east-1.amazonaws.com/$4:latest
+docker tag docbuilder/$4:latest $1.dkr.ecr.us-east-1.amazonaws.com/docbuilder/$4:latest
+docker push $1.dkr.ecr.us-east-1.amazonaws.com/docbuilder/$4:latest
 
 echo "Getting Terraform assets from S3..."
 # Package and upload the application versions for ElasticBeanstalk.
