@@ -276,7 +276,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-service" {
   tier = "WebServer"
   application = "${aws_elastic_beanstalk_application.doc-builder.name}"
   version_label = "${aws_elastic_beanstalk_application_version.service-app-version.name}"
-  solution_stack_name = "${var.service_solution_stack}"
+  solution_stack_name = "64bit Amazon Linux 2016.09 v2.5.2 running Docker 1.12.6"
   wait_for_ready_timeout = "20m"
 
   setting {
@@ -519,7 +519,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   tier = "Worker"
   application = "${aws_elastic_beanstalk_application.doc-builder.name}"
   version_label = "${aws_elastic_beanstalk_application_version.worker-app-version.name}"
-  solution_stack_name = "${var.worker_solution_stack}"
+  solution_stack_name = "64bit Amazon Linux 2016.09 v2.5.2 running Docker 1.12.6"
   wait_for_ready_timeout = "20m"
 
   setting {
