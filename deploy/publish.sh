@@ -44,7 +44,9 @@ echo "Deploying environments..."
 cd terraform
 for d in */ ; do
 	cd $d
+	cp ../doc-builder.tf ./
 	../terraform apply
+	rm doc-builder.tf
 	cd ..
 done
 
