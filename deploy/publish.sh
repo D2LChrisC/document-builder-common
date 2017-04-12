@@ -37,7 +37,7 @@ aws s3 cp ./terraform/service.zip s3://d2l-docbuilder-terraform-$1/service.zip -
 aws s3 cp ./terraform/worker.zip s3://d2l-docbuilder-terraform-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
 
 # Pull down the state files to perform the conversion.
-aws s3 sync s3://d2l-docbuilder-terraform-$1 ./terraform
+aws s3 sync s3://d2l-docbuilder-terraform-$1 ./terraform --exclude "doc-builder.tf"
 unzip ./terraform/terraform.zip -d ./terraform
 
 echo "Deploying environments..."
@@ -51,4 +51,4 @@ done
 echo "Saving state changes back to S3..."
 rm terraform
 cd ..
-aws s3 sync ./terraform s3://d2l-docbuilder-terraform-$1 --sse aws:kms --sse-kms-key-id $5
+aws s3 sync ./terraform s3://d2l-docbuilder-terraform-$1 --sse aws:kms --sse-kms-key-id $5 --exclude "doc-builder.tf"
