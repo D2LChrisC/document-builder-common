@@ -2,11 +2,6 @@
 
 cd "$(dirname "$0")"
 
-echo "Account ID: " $1
-echo "Access Key: " $2
-echo "Repo: " $4
-echo "KMS Key ID: " $5 
-
 echo "Creating application version package..."
 
 # set AWS credentials
@@ -38,8 +33,8 @@ sed -i -e s/aws_account/$1/g Dockerrun.aws.json
 zip -rv ../terraform/worker.zip .ebextensions/ Dockerrun.aws.json
 cd .. && rm -rf temp/
 
-aws s3 mv ./terraform/service.zip s3://d2l-docbuilder-terraform-$1/service.zip --sse aws:kms --sse-kms-key-id $5
-aws s3 mv ./terraform/worker.zip s3://d2l-docbuilder-terraform-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
+aws s3 cp ./terraform/service.zip s3://d2l-docbuilder-terraform-$1/service.zip --sse aws:kms --sse-kms-key-id $5
+aws s3 cp ./terraform/worker.zip s3://d2l-docbuilder-terraform-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
 
 # Pull down the state files to perform the conversion.
 aws s3 sync s3://d2l-docbuilder-terraform-$1 ./terraform
@@ -49,7 +44,7 @@ echo "Deploying environments..."
 cd terraform
 for d in */ ; do
 	cd $d
-	../terraform plan
+	../terraform apply
 	cd ..
 done
 
