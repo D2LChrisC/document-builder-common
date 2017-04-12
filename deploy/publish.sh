@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd "$(dirname "$0")"
+
 echo "Account ID: " $1
 echo "Access Key: " $2
 echo "Repo: " $4
