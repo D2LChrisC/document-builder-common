@@ -5,8 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.isFormatSupported = isFormatSupported;
 var supportedFormats = {
-	'pdf': ['', '.doc', '.docx', '.rtf', '.odt', '.ppt', '.pps', '.pptx', '.ppsx', '.odp', '.xls', '.xlsx'],
-	'html': ['', '.doc', '.docx', '.rtf', '.odt']
+	'pdf': ['', '.doc', '.docx', '.rtf', '.odt', '.ppt', '.pps', '.pptx', '.ppsx', '.odp', '.xls', '.xlsx', '.txt', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.gif'],
+	'html': ['', '.doc', '.docx', '.rtf', '.odt', '.ppt', '.pps', '.pptx', '.ppsx', '.odp', '.xls', '.xlsx']
 };
 
 function isFormatSupported(format, extension) {
