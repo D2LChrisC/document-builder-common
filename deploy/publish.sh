@@ -47,7 +47,7 @@ for d in */ ; do
 	cp ../doc-builder.tf ./
 	logfile=tf-log-$region-$(date +"%F-%T").log
 	echo "Terraforming" $region "..."
-	../terraform plan | tee $logfile
+	../terraform apply | tee $logfile
 	aws s3 mv $logfile s3://elasticbeanstalk-$region-$1/tf-logs/$logfile --sse aws:kms
 	rm doc-builder.tf
 	cd ..
