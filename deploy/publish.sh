@@ -33,9 +33,6 @@ sed -i -e s/aws_account/$1/g Dockerrun.aws.json
 zip -rv ../terraform/worker.zip .ebextensions/ Dockerrun.aws.json
 cd .. && rm -rf temp/
 
-aws s3 cp ./terraform/service.zip s3://d2l-docbuilder-terraform-$1/service.zip --sse aws:kms --sse-kms-key-id $5
-aws s3 cp ./terraform/worker.zip s3://d2l-docbuilder-terraform-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
-
 # Pull down the state files to perform the conversion.
 aws s3 sync s3://d2l-docbuilder-terraform-$1 ./terraform --exclude "doc-builder.tf"
 unzip ./terraform/terraform.zip -d ./terraform
@@ -44,8 +41,13 @@ echo "Deploying environments..."
 cd terraform
 for d in */ ; do
 	cd $d
+	region=$(cat region)
+	aws s3 cp ../service.zip s3://elasticbeanstalk-$region-$1/service.zip --sse aws:kms --sse-kms-key-id $5
+	aws s3 cp ../worker.zip s3://elasticbeanstalk-$region-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
 	cp ../doc-builder.tf ./
-	../terraform apply
+	logfile=tf-log-$region-$(date +"%F-%T").log
+	../terraform apply > $logfile
+	aws s3 mv $logfile s3://elasticbeanstalk-$region-$1/tf-logs/$logfile --see aws:kms --sse-kms-key-id $5
 	rm doc-builder.tf
 	cd ..
 done

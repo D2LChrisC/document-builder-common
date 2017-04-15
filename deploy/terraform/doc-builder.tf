@@ -48,12 +48,12 @@ data "aws_iam_server_certificate" "star-brightspace-com" {
 data "aws_caller_identity" "current" { }
 
 data "aws_s3_bucket_object" "service-bundle" {
-  bucket = "d2l-docbuilder-terraform-${var.aws_account_id}"
+  bucket = "elasticbeanstalk-${var.region}-${var.aws_account_id}"
   key = "service.zip"
 }
 
 data "aws_s3_bucket_object" "worker-bundle" {
-  bucket = "d2l-docbuilder-terraform-${var.aws_account_id}"
+  bucket = "elasticbeanstalk-${var.region}-${var.aws_account_id}"
   key = "worker.zip"
 }
 
