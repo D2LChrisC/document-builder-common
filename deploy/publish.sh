@@ -46,8 +46,9 @@ for d in */ ; do
 	aws s3 cp ../worker.zip s3://elasticbeanstalk-$region-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
 	cp ../doc-builder.tf ./
 	logfile=tf-log-$region-$(date +"%F-%T").log
+	echo "Terraforming" $region "..."
 	../terraform apply > $logfile
-	aws s3 mv $logfile s3://elasticbeanstalk-$region-$1/tf-logs/$logfile --see aws:kms --sse-kms-key-id $5
+	aws s3 mv $logfile s3://elasticbeanstalk-$region-$1/tf-logs/$logfile --sse aws:kms --sse-kms-key-id $5
 	rm doc-builder.tf
 	cd ..
 done

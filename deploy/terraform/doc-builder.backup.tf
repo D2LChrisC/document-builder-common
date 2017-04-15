@@ -531,7 +531,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:elasticbeanstalk:command"
     name = "BatchSize"
-    value = "35"
+    value = "30"
   }
 
   setting {
@@ -639,25 +639,25 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "VisibilityTimeout"
-    value = "1800"
+    value = "1200"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "HttpConnections"
-    value = "1"
+    value = "4"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "InactivityTimeout"
-    value = "1800"
+    value = "1200"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "VisibilityTimeout"
-    value = "1800"
+    value = "300"
   }
 
   setting {
@@ -699,19 +699,19 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:autoscaling:trigger"
     name = "UpperBreachScaleIncrement"
-    value = "10%"
+    value = "3"
   }
 
   setting {
     namespace = "aws:autoscaling:trigger"
     name = "BreachDuration"
-    value = "6"
+    value = "3"
   }
 
   setting {
     namespace = "aws:autoscaling:trigger"
     name = "LowerThreshold"
-    value = "30"
+    value = "20"
   }
 
   setting {
@@ -795,7 +795,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:autoscaling:updatepolicy:rollingupdate"
     name = "MaxBatchSize"
-    value = "5"
+    value = "3"
   }
 
   setting {
