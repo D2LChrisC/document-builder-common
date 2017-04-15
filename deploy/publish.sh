@@ -42,13 +42,13 @@ cd terraform
 for d in */ ; do
 	cd $d
 	region=$(cat region)
-	aws s3 cp ../service.zip s3://elasticbeanstalk-$region-$1/service.zip --sse aws:kms --sse-kms-key-id $5
-	aws s3 cp ../worker.zip s3://elasticbeanstalk-$region-$1/worker.zip --sse aws:kms --sse-kms-key-id $5
+	aws s3 cp ../service.zip s3://elasticbeanstalk-$region-$1/service.zip --sse aws:kms
+	aws s3 cp ../worker.zip s3://elasticbeanstalk-$region-$1/worker.zip --sse aws:kms
 	cp ../doc-builder.tf ./
 	logfile=tf-log-$region-$(date +"%F-%T").log
 	echo "Terraforming" $region "..."
 	../terraform plan | tee $logfile
-	aws s3 mv $logfile s3://elasticbeanstalk-$region-$1/tf-logs/$logfile --sse aws:kms --sse-kms-key-id $5
+	aws s3 mv $logfile s3://elasticbeanstalk-$region-$1/tf-logs/$logfile --sse aws:kms
 	rm doc-builder.tf
 	cd ..
 done
@@ -56,4 +56,4 @@ done
 echo "Saving state changes back to S3..."
 rm terraform
 cd ..
-aws s3 sync ./terraform s3://d2l-docbuilder-terraform-$1 --sse aws:kms --sse-kms-key-id $5 --exclude "doc-builder.tf"
+aws s3 sync ./terraform s3://d2l-docbuilder-terraform-$1 --sse aws:kms --exclude "doc-builder.tf"
