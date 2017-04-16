@@ -260,14 +260,14 @@ resource "aws_key_pair" "ssh-key-pair" {
 resource "aws_elastic_beanstalk_application_version" "service-app-version" {
   name = "service-bundle-${var.env}"
   application = "${aws_elastic_beanstalk_application.doc-builder.name}"
-  bucket = "d2l-docbuilder-terraform-${var.aws_account_id}"
+  bucket = "elasticbeanstalk-${var.region}-${var.aws_account_id}"
   key = "service.zip"
 }
 
 resource "aws_elastic_beanstalk_application_version" "worker-app-version" {
   name = "worker-bundle-${var.env}"
   application = "${aws_elastic_beanstalk_application.doc-builder.name}"
-  bucket = "d2l-docbuilder-terraform-${var.aws_account_id}"
+  bucket = "elasticbeanstalk-${var.region}-${var.aws_account_id}"
   key = "worker.zip"
 }
 
