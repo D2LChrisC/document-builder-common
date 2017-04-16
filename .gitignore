@@ -47,3 +47,6 @@ tmp/
 
 # Typings
 typings/
+
+deploy/terraform/doc-builder.backup.tf
+
