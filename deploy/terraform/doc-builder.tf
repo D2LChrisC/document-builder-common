@@ -771,13 +771,13 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:autoscaling:asg"
     name = "MinSize"
-    value = "1"
+    value = "2"
   }
 
   setting {
     namespace = "aws:autoscaling:asg"
     name = "MaxSize"
-    value = "10"
+    value = "20"
   }
 
   setting {
