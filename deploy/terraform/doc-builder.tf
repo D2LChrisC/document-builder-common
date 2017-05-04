@@ -613,6 +613,12 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   }
 
   setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "DOCBUILDER_CONVERSION_TIMEOUT"
+    value = "1700000"
+  }
+
+  setting {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "ConnectTimeout"
     value = "60"
@@ -711,7 +717,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:autoscaling:trigger"
     name = "LowerThreshold"
-    value = "30"
+    value = "7"
   }
 
   setting {
@@ -723,7 +729,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:autoscaling:trigger"
     name = "UpperThreshold"
-    value = "47"
+    value = "28"
   }
 
   setting {
