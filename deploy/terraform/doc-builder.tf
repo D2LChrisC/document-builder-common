@@ -663,7 +663,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
   setting {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "HttpConnections"
-    value = "1"
+    value = "2"
   }
 
   setting {
@@ -682,12 +682,6 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
     namespace = "aws:elasticbeanstalk:sqsd"
     name = "MimeType"
     value = "application/json"
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:monitoring"
-    name = "Automatically Terminate Unhealthy Instances"
-    value = "true"
   }
 
   setting {
