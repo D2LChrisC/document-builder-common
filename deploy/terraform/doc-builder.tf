@@ -286,6 +286,12 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-service" {
   }
 
   setting {
+    namespace = "aws:elasticbeanstalk:monitoring"
+    name = "Automatically Terminate Unhealthy Instances"
+    value = "true"
+  }
+
+  setting {
     namespace = "aws:elasticbeanstalk:command"
     name = "BatchSize"
     value = "30"
@@ -486,7 +492,7 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-service" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name = "InstanceType"
-    value = "t2.micro"
+    value = "t2.small"
   }
 
   setting {
@@ -526,6 +532,12 @@ resource "aws_elastic_beanstalk_environment" "doc-builder-worker" {
     namespace = "aws:autoscaling:launchconfiguration"
     name = "SSHSourceRestriction"
     value = "tcp, 22, 22, 216.16.228.6/32"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:monitoring"
+    name = "Automatically Terminate Unhealthy Instances"
+    value = "true"
   }
 
   setting {
