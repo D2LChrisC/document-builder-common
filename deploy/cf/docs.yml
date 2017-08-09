@@ -262,7 +262,7 @@ Resources:
       DesiredCount: '1'
       LoadBalancers:
       - ContainerName: docs-service
-        ContainerPort: '8100'
+        ContainerPort: '24024'
         TargetGroupArn: !Ref 'ECSTG'
       Role: !Ref 'ECSServiceRole'
       TaskDefinition: !Ref 'taskdefinition'
