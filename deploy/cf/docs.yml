@@ -210,7 +210,7 @@ Resources:
       Conditions:
       - Field: path-pattern
         Values: [/]
-      ListenerArn: !Ref 'ALBListener'
+      ListenerArn: !Ref 'ALBListenerHTTPS'
       Priority: 1
   ECSTG:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -256,7 +256,7 @@ Resources:
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
   service:
     Type: AWS::ECS::Service
-    DependsOn: ALBListener
+    DependsOn: ALBListenerHTTPS
     Properties:
       Cluster: !Ref 'ECSCluster'
       DesiredCount: '1'
