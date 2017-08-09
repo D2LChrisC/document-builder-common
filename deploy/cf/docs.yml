@@ -199,7 +199,7 @@ Resources:
       Port: '443'
       Protocol: HTTPS
       Certificates:
-        - CertificateArn: arn:aws:acm:us-east-1:961445962603:certificate/aa379366-6422-4af3-9ca4-01f0724a7394
+        - CertificateArn: arn:aws:iam::057731502320:server-certificate/star-dcs-brightspace-com
   ECSALBListenerRuleHTTPS:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     DependsOn: ALBListenerHTTPS
