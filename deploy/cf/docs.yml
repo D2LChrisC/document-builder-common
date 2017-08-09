@@ -261,7 +261,7 @@ Resources:
       Cluster: !Ref 'ECSCluster'
       DesiredCount: '1'
       LoadBalancers:
-      - ContainerName: divelog-web
+      - ContainerName: docs-service
         ContainerPort: '8100'
         TargetGroupArn: !Ref 'ECSTG'
       Role: !Ref 'ECSServiceRole'
