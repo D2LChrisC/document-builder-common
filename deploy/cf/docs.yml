@@ -124,30 +124,30 @@ Resources:
     Properties:
       GroupDescription: ECS Security Group
       VpcId: !Ref 'VpcId'
-  EcsSecurityGroupHTTPSinbound:
+  WorkerEcsSecurityGroupHTTPinbound:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref 'EcsSecurityGroup'
+      GroupId: !Ref 'WorkerEcsSecurityGroup'
       IpProtocol: tcp
-      FromPort: '443'
-      ToPort: '443'
+      FromPort: '80'
+      ToPort: '80'
       CidrIp: !Ref 'HttpCidrIP'
-  EcsSecurityGroupSSHinbound:
+  WorkerEcsSecurityGroupSSHinbound:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref 'EcsSecurityGroup'
+      GroupId: !Ref 'WorkerEcsSecurityGroup'
       IpProtocol: tcp
       FromPort: '22'
       ToPort: '22'
       CidrIp: !Ref 'SshCidrIP'
-  EcsSecurityGroupALBports:
+  WorkerEcsSecurityGroupALBports:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref 'EcsSecurityGroup'
+      GroupId: !Ref 'WorkerEcsSecurityGroup'
       IpProtocol: tcp
       FromPort: '31000'
       ToPort: '61000'
-      SourceSecurityGroupId: !Ref 'EcsSecurityGroup'
+      SourceSecurityGroupId: !Ref 'WorkerEcsSecurityGroup'
   CloudwatchLogsGroup:
     Type: AWS::Logs::LogGroup
     Properties:
