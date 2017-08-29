@@ -7,6 +7,10 @@ Parameters:
     Type: String
     Description: The Docker image to deploy on the ECS instances.
     Default: '057731502320.dkr.ecr.us-east-1.amazonaws.com/docbuilder/service:latest'
+  DockerWorkerImage:
+    Type: String
+    Description: The Docker image to deploy on the ECS worker instances.
+    Default: '057731502320.dkr.ecr.us-east-1.amazonaws.com/docbuilder/worker:latest'
   HttpCidrIP:
     Type: String
     Description: The CIDR filter used to restrict HTTP access to certain subnets.
@@ -18,9 +22,15 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: Select a VPC that allows instances access to the Internet.
+  WorkerVpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select an internally-facing VPC to run the worker instances on.
   SubnetId:
     Type: List<AWS::EC2::Subnet::Id>
-    Description: Select at two subnets in your selected VPC.
+    Description: Select at least two subnets in your selected VPC.
+  WorkerSubnetId:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select at least two subnets in your selected VPC.
   DesiredCapacity:
     Type: Number
     Default: '1'
@@ -33,6 +43,16 @@ Parameters:
     Description: EC2 instance type
     Type: String
     Default: t2.micro
+    AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
+      m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
+      c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
+      c3.2xlarge, c3.4xlarge, c3.8xlarge, r3.large, r3.xlarge, r3.2xlarge, r3.4xlarge,
+      r3.8xlarge, i2.xlarge, i2.2xlarge, i2.4xlarge, i2.8xlarge]
+    ConstraintDescription: Please choose a valid instance type.
+  WorkerInstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: c4.large
     AllowedValues: [t2.micro, t2.small, t2.medium, t2.large, m3.medium, m3.large,
       m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge,
       c4.large, c4.xlarge, c4.2xlarge, c4.4xlarge, c4.8xlarge, c3.large, c3.xlarge,
@@ -97,9 +117,9 @@ Mappings:
       AMIID: ami-5781be34
 
 Resources:
-  ECSCluster:
+  WorkerECSCluster:
     Type: AWS::ECS::Cluster
-  EcsSecurityGroup:
+  WorkerEcsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: ECS Security Group
@@ -377,3 +397,284 @@ Outputs:
     Value: !Join ['', [!GetAtt [ECSALB, DNSName]]]
   taskdef:
     Value: !Ref 'taskdefinition'
+
+
+
+
+
+  WorkerECSCluster:
+    Type: AWS::ECS::Cluster
+  WorkerEcsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Security Group
+      VpcId: !Ref 'WorkerVpcId'
+  WorkerEcsSecurityGroupHTTPSinbound:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'WorkerEcsSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '443'
+      ToPort: '443'
+      CidrIp: !Ref 'HttpCidrIP'
+  WorkerEcsSecurityGroupSSHinbound:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'WorkerEcsSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      CidrIp: !Ref 'SshCidrIP'
+  WorkerEcsSecurityGroupALBports:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref 'WorkerEcsSecurityGroup'
+      IpProtocol: tcp
+      FromPort: '31000'
+      ToPort: '61000'
+      SourceSecurityGroupId: !Ref 'WorkerEcsSecurityGroup'
+  WorkerCloudwatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['-', [WorkerECSLogGroup, !Ref 'AWS::StackName']]
+      RetentionInDays: 14
+  workertaskdefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['', [!Ref 'AWS::StackName', -docs-worker]]
+      ContainerDefinitions:
+      - Name: docs-worker
+        Cpu: '20'
+        Essential: 'true'
+        Image: !Ref DockerWorkerImage
+        Environment:
+          - Name: NODE_ENV
+            Value: !Ref NodeEnv
+          - Name: DOCBUILDER_ACCESS_KEY_ID
+            Value: !Ref AwsKeyId
+          - Name: DOCBUILDER_AWS_SECRET_KEY
+            Value: !Ref AwsSecretKey
+          - Name: DOCBUILDER_AWS_REGION
+            Value: !Ref AWS::Region
+          - Name: DOCBUILDER_CONVERSION_TIMEOUT
+            Value: '1700000'
+          - Name: DOCBUILDER_CONVERTED_BUCKET
+            Value: !Ref ConvertedBucket
+          - Name: DOCBUILDER_DATABASE
+            Value: aws-dynamodb
+          - Name: DOCBUILDER_ENCRYPTION_KEY_ID
+            Value: !Ref EncryptionKeyId
+          - Name: DOCBUILDER_FILE_STORAGE
+            Value: aws-s3
+          - Name: DOCBUILDER_UNCONVERTED_BUCKET
+            Value: !Ref UnconvertedBucket
+          - Name: DOCBUILDER_LOGSTASH_HOST
+            Value: !Ref LogStashHost
+          - Name: DOCBUILDER_LOGSTASH_PORT
+            Value: !Ref LogStashPort
+        Memory: '500'
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: !Ref 'WorkerCloudwatchLogsGroup'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: ecs-docs-worker
+        PortMappings:
+        - ContainerPort: 24028
+  WorkerECSALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: WorkerECSALB
+      Scheme: internal
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: '30'
+      Subnets: !Ref 'WorkerSubnetId'
+      SecurityGroups: [!Ref 'WorkerEcsSecurityGroup']
+  WorkerALBListenerHTTP:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn: WorkerECSServiceRole
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref 'WorkerECSTG'
+      LoadBalancerArn: !Ref 'WorkerECSALB'
+      Port: '443'
+      Protocol: HTTP
+  WorkerECSALBListenerRuleHTTP:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn: ALBListenerHTTP
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'WorkerECSTG'
+      Conditions:
+      - Field: path-pattern
+        Values: [/]
+      ListenerArn: !Ref 'WorkerALBListenerHTTP'
+      Priority: 1
+  WorkerECSTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: WorkerECSALB
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /api/1.0/health/
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: WorkerECSTG
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref 'WorkerVpcId'
+  WorkerECSAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref 'WorkerSubnetId'
+      LaunchConfigurationName: !Ref 'WorkerContainerInstances'
+      MinSize: '1'
+      MaxSize: !Ref 'WorkerMaxSize'
+      DesiredCapacity: !Ref 'WorkerDesiredCapacity'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
+  WorkerContainerInstances:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !FindInMap [AWSRegionToAMI, !Ref 'AWS::Region', AMIID]
+      SecurityGroups: [!Ref 'WorkerEcsSecurityGroup']
+      InstanceType: !Ref 'WorkerInstanceType'
+      IamInstanceProfile: !Ref 'WorkerEC2InstanceProfile'
+      KeyName: !Ref 'KeyName'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+  worker:
+    Type: AWS::ECS::Service
+    DependsOn: WorkerALBListenerHTTPS
+    Properties:
+      Cluster: !Ref 'WorkerECSCluster'
+      DesiredCount: '1'
+      LoadBalancers:
+      - ContainerName: docs-worker
+        ContainerPort: '24028'
+        TargetGroupArn: !Ref 'WorkerECSTG'
+      Role: !Ref 'WorkerECSServiceRole'
+      TaskDefinition: !Ref 'workertaskdefinition'
+  WorkerECSServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ecs.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: ecs-worker
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ['elasticloadbalancing:DeregisterInstancesFromLoadBalancer', 'elasticloadbalancing:DeregisterTargets',
+              'elasticloadbalancing:Describe*', 'elasticloadbalancing:RegisterInstancesWithLoadBalancer',
+              'elasticloadbalancing:RegisterTargets', 'ec2:Describe*', 'ec2:AuthorizeSecurityGroupIngress']
+            Resource: '*'
+  WorkerScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: worker
+    Properties:
+      MaxCapacity: 3
+      MinCapacity: 1
+      ResourceId: !Join ['', [worker/, !Ref 'ECSCluster', /, !GetAtt [service, Name]]]
+      RoleARN: !GetAtt [AutoscalingRole, Arn]
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+  WorkerScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: WorkerAStepPolicy
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref 'WorkerScalingTarget'
+      StepScalingPolicyConfiguration:
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown: 60
+        MetricAggregationType: Average
+        StepAdjustments:
+        - MetricIntervalLowerBound: 0
+          ScalingAdjustment: 200
+  ALB500sAlarmScaleUp:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '10'
+      AlarmDescription: Alarm if our ALB generates too many HTTP 500s.
+      Period: '60'
+      AlarmActions: [!Ref 'WorkerScalingPolicy']
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: WorkerECSService
+        Value: !Ref 'worker'
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: HTTPCode_ELB_5XX_Count
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ec2.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: ecs-service
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ['ecs:CreateCluster', 'ecs:DeregisterContainerInstance', 'ecs:DiscoverPollEndpoint',
+              'ecs:Poll', 'ecs:RegisterContainerInstance', 'ecs:StartTelemetrySession',
+              'ecs:Submit*', 'logs:CreateLogStream', 'logs:PutLogEvents', 'ecr:GetAuthorizationToken',
+              'ecr:BatchCheckLayerAvailability', 'ecr:GetDownloadUrlForLayer', 'ecr:GetRepositoryPolicy',
+              'ecr:DescribeRepositories', 'ecr:ListImages', 'ecr:DescribeImages', 'ecr:BatchGetImage']
+            Resource: '*'
+  AutoscalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [application-autoscaling.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: service-autoscaling
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ['application-autoscaling:*', 'cloudwatch:DescribeAlarms', 'cloudwatch:PutMetricAlarm',
+              'ecs:DescribeServices', 'ecs:UpdateService']
+            Resource: '*'
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: [!Ref 'EC2Role']
+Outputs:
+  ecsservice:
+    Value: !Ref 'worker'
+  ecscluster:
+    Value: !Ref 'WorkerECSCluster'
+  ECSALB:
+    Description: Your ALB DNS URL
+    Value: !Join ['', [!GetAtt [WorkerECSALB, DNSName]]]
+  taskdef:
+    Value: !Ref 'workertaskdefinition'
