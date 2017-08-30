@@ -117,37 +117,37 @@ Mappings:
       AMIID: ami-5781be34
 
 Resources:
-  WorkerECSCluster:
+  ECSCluster:
     Type: AWS::ECS::Cluster
-  WorkerEcsSecurityGroup:
+  EcsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: ECS Security Group
       VpcId: !Ref 'VpcId'
-  WorkerEcsSecurityGroupHTTPinbound:
+  EcsSecurityGroupHTTPinbound:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref 'WorkerEcsSecurityGroup'
+      GroupId: !Ref 'EcsSecurityGroup'
       IpProtocol: tcp
       FromPort: '80'
       ToPort: '80'
       CidrIp: !Ref 'HttpCidrIP'
-  WorkerEcsSecurityGroupSSHinbound:
+  EcsSecurityGroupSSHinbound:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref 'WorkerEcsSecurityGroup'
+      GroupId: !Ref 'EcsSecurityGroup'
       IpProtocol: tcp
       FromPort: '22'
       ToPort: '22'
       CidrIp: !Ref 'SshCidrIP'
-  WorkerEcsSecurityGroupALBports:
+  EcsSecurityGroupALBports:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupId: !Ref 'WorkerEcsSecurityGroup'
+      GroupId: !Ref 'EcsSecurityGroup'
       IpProtocol: tcp
       FromPort: '31000'
       ToPort: '61000'
-      SourceSecurityGroupId: !Ref 'WorkerEcsSecurityGroup'
+      SourceSecurityGroupId: !Ref 'EcsSecurityGroup'
   CloudwatchLogsGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -670,11 +670,11 @@ Outputs:
       Roles: [!Ref 'EC2Role']
 Outputs:
   ecsservice:
-    Value: !Ref 'worker'
+    Value: !Ref 'service'
   ecscluster:
-    Value: !Ref 'WorkerECSCluster'
+    Value: !Ref 'ECSCluster'
   ECSALB:
     Description: Your ALB DNS URL
-    Value: !Join ['', [!GetAtt [WorkerECSALB, DNSName]]]
+    Value: !Join ['', [!GetAtt [ECSALB, DNSName]]]
   taskdef:
-    Value: !Ref 'workertaskdefinition'
+    Value: !Ref 'taskdefinition'
