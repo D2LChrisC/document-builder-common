@@ -494,7 +494,7 @@ Resources:
       - Type: forward
         TargetGroupArn: !Ref 'WorkerECSTG'
       LoadBalancerArn: !Ref 'WorkerECSALB'
-      Port: '443'
+      Port: '80'
       Protocol: HTTP
   WorkerECSALBListenerRuleHTTP:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
@@ -604,7 +604,7 @@ Resources:
         StepAdjustments:
         - MetricIntervalLowerBound: 0
           ScalingAdjustment: 200
-  ALB500sAlarmScaleUp:
+  WorkerALB500sAlarmScaleUp:
     Type: AWS::CloudWatch::Alarm
     Properties:
       EvaluationPeriods: '1'
@@ -619,7 +619,7 @@ Resources:
         Value: !Ref 'worker'
       ComparisonOperator: GreaterThanThreshold
       MetricName: HTTPCode_ELB_5XX_Count
-  EC2Role:
+  WorkerEC2Role:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -640,7 +640,7 @@ Resources:
               'ecr:BatchCheckLayerAvailability', 'ecr:GetDownloadUrlForLayer', 'ecr:GetRepositoryPolicy',
               'ecr:DescribeRepositories', 'ecr:ListImages', 'ecr:DescribeImages', 'ecr:BatchGetImage']
             Resource: '*'
-  AutoscalingRole:
+  WorkerAutoscalingRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -662,7 +662,7 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
-      Roles: [!Ref 'EC2Role']
+      Roles: [!Ref 'WorkerEC2Role']
 Outputs:
   ecsservice:
     Value: !Ref 'service'
