@@ -246,7 +246,7 @@ Resources:
     Properties:
       HealthCheckIntervalSeconds: 10
       HealthCheckPath: /api/1.0/health/
-      HealthCheckProtocol: HTTPS
+      HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       Name: ECSTG
@@ -587,7 +587,7 @@ Resources:
     Properties:
       MaxCapacity: 3
       MinCapacity: 1
-      ResourceId: !Join ['', [worker/, !Ref 'ECSCluster', /, !GetAtt [service, Name]]]
+      ResourceId: !Join ['', [worker/, !Ref 'WorkerECSCluster', /, !GetAtt [worker, Name]]]
       RoleARN: !GetAtt [AutoscalingRole, Arn]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
