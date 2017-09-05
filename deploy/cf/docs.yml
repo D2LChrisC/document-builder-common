@@ -490,7 +490,7 @@ Resources:
       Protocol: HTTP
   WorkerECSALBListenerRuleHTTP:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    DependsOn: ALBListenerHTTP
+    DependsOn: WorkerALBListenerHTTP
     Properties:
       Actions:
       - Type: forward
