@@ -39,6 +39,14 @@ Parameters:
     Type: Number
     Default: '3'
     Description: Maximum number of instances that can be launched in your ECS cluster.
+  WorkerDesiredCapacity:
+    Type: Number
+    Default: '1'
+    Description: Number of instances to launch in your ECS worker cluster.
+  WorkerMaxSize:
+    Type: Number
+    Default: '3'
+    Description: Maximum number of instances that can be launched in your ECS worker cluster.
   ServiceInstanceType:
     Description: EC2 instance type
     Type: String
