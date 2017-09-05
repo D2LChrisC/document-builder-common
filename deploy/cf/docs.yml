@@ -552,7 +552,7 @@ Resources:
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
   worker:
     Type: AWS::ECS::Service
-    DependsOn: WorkerALBListenerHTTPS
+    DependsOn: WorkerALBListenerHTTP
     Properties:
       Cluster: !Ref 'WorkerECSCluster'
       DesiredCount: '1'
@@ -658,7 +658,7 @@ Resources:
             Action: ['application-autoscaling:*', 'cloudwatch:DescribeAlarms', 'cloudwatch:PutMetricAlarm',
               'ecs:DescribeServices', 'ecs:UpdateService']
             Resource: '*'
-  EC2InstanceProfile:
+  WorkerEC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
