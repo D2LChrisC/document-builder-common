@@ -5,13 +5,17 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = createLogger;
 
+var _awsSdk = require('aws-sdk');
+
+var _awsSdk2 = _interopRequireDefault(_awsSdk);
+
 var _bunyan = require('bunyan');
 
 var _bunyan2 = _interopRequireDefault(_bunyan);
 
-var _bunyanLogstashTcp = require('bunyan-logstash-tcp');
+var _bunyanFirehose = require('bunyan-firehose');
 
-var _bunyanLogstashTcp2 = _interopRequireDefault(_bunyanLogstashTcp);
+var _bunyanFirehose2 = _interopRequireDefault(_bunyanFirehose);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -26,21 +30,23 @@ function createLogger(name, config) {
 		level: config.logLevel
 	};
 
-	if (config.logstashHost) {
-		var logstashStream = {
-			type: 'raw',
-			stream: _bunyanLogstashTcp2.default.createStream({
-				host: config.logstashHost,
-				port: config.logstashPort,
+	if (config.firehoseStream) {
+		var credentials = new _awsSdk2.default.TemporaryCredentials({
+			RoleArn: config.firehoseRole,
+			RoleSessionName: 'docs-logging',
+			DurationSeconds: 3600
+		}, new _awsSdk2.default.Credentials(config.accessKeyId, config.secretAccessKey));
 
-				// If connection is lost to logstash, attempt to reconnect every 200ms
-				// for 20mins.
-				max_connect_retries: 6000,
-				retry_interval: 200
-			})
-		};
+		var firehoseStream = _bunyanFirehose2.default.createStream({
+			streamName: config.firehoseStream,
+			region: 'us-east-1',
+			credentials: credentials
+		});
 
-		logConfig.streams.push(logstashStream);
+		logConfig.streams.push({
+			stream: firehoseStream,
+			type: 'raw'
+		});
 	}
 
 	if (config.streams) {

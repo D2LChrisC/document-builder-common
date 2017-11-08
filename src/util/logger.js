@@ -1,5 +1,6 @@
+import AWS from 'aws-sdk';
 import bunyan from 'bunyan';
-import logstash from 'bunyan-logstash-tcp';
+import firehose from 'bunyan-firehose';
 
 export default function createLogger(name, config) {
 	config = config || { logLevel: 'debug' };
@@ -14,21 +15,27 @@ export default function createLogger(name, config) {
 		level: config.logLevel
 	};
 
-	if (config.logstashHost) {
-		const logstashStream = {
-			type: 'raw',
-			stream: logstash.createStream({
-				host: config.logstashHost,
-				port: config.logstashPort,
+	if (config.firehoseStream) {
+		const credentials = new AWS.TemporaryCredentials({
+			RoleArn: config.firehoseRole,
+			RoleSessionName: 'docs-logging',
+			DurationSeconds: 3600
+		},
+		new AWS.Credentials(
+			config.accessKeyId,
+			config.secretAccessKey
+		));
 
-				// If connection is lost to logstash, attempt to reconnect every 200ms
-				// for 20mins.
-				max_connect_retries: 6000,
-				retry_interval: 200
-			})
-		};
+		const firehoseStream = firehose.createStream({
+			streamName: config.firehoseStream,
+			region: 'us-east-1',
+			credentials: credentials
+		});
 
-		logConfig.streams.push(logstashStream);
+		logConfig.streams.push({
+			stream: firehoseStream,
+			type: 'raw'
+		});
 	}
 
 	if (config.streams) {
