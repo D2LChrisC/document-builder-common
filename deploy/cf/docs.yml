@@ -39,6 +39,14 @@ Parameters:
     Type: Number
     Default: '3'
     Description: Maximum number of instances that can be launched in your ECS cluster.
+  WorkerDesiredCapacity:
+    Type: Number
+    Default: '1'
+    Description: Number of instances to launch in your ECS worker cluster.
+  WorkerMaxSize:
+    Type: Number
+    Default: '3'
+    Description: Maximum number of instances that can be launched in your ECS worker cluster.
   ServiceInstanceType:
     Description: EC2 instance type
     Type: String
@@ -117,20 +125,20 @@ Mappings:
       AMIID: ami-5781be34
 
 Resources:
-  WorkerECSCluster:
+  ECSCluster:
     Type: AWS::ECS::Cluster
-  WorkerEcsSecurityGroup:
+  EcsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: ECS Security Group
       VpcId: !Ref 'VpcId'
-  EcsSecurityGroupHTTPSinbound:
+  EcsSecurityGroupHTTPinbound:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref 'EcsSecurityGroup'
       IpProtocol: tcp
-      FromPort: '443'
-      ToPort: '443'
+      FromPort: '80'
+      ToPort: '80'
       CidrIp: !Ref 'HttpCidrIP'
   EcsSecurityGroupSSHinbound:
     Type: AWS::EC2::SecurityGroupIngress
@@ -238,7 +246,7 @@ Resources:
     Properties:
       HealthCheckIntervalSeconds: 10
       HealthCheckPath: /api/1.0/health/
-      HealthCheckProtocol: HTTPS
+      HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       Name: ECSTG
@@ -387,19 +395,6 @@ Resources:
     Properties:
       Path: /
       Roles: [!Ref 'EC2Role']
-Outputs:
-  ecsservice:
-    Value: !Ref 'service'
-  ecscluster:
-    Value: !Ref 'ECSCluster'
-  ECSALB:
-    Description: Your ALB DNS URL
-    Value: !Join ['', [!GetAtt [ECSALB, DNSName]]]
-  taskdef:
-    Value: !Ref 'taskdefinition'
-
-
-
 
 
   WorkerECSCluster:
@@ -499,11 +494,11 @@ Outputs:
       - Type: forward
         TargetGroupArn: !Ref 'WorkerECSTG'
       LoadBalancerArn: !Ref 'WorkerECSALB'
-      Port: '443'
+      Port: '80'
       Protocol: HTTP
   WorkerECSALBListenerRuleHTTP:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    DependsOn: ALBListenerHTTP
+    DependsOn: WorkerALBListenerHTTP
     Properties:
       Actions:
       - Type: forward
@@ -552,12 +547,12 @@ Outputs:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
-          echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+          echo ECS_CLUSTER=${WorkerECSCluster} >> /etc/ecs/ecs.config
           yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WorkerECSAutoScalingGroup --region ${AWS::Region}
   worker:
     Type: AWS::ECS::Service
-    DependsOn: WorkerALBListenerHTTPS
+    DependsOn: WorkerALBListenerHTTP
     Properties:
       Cluster: !Ref 'WorkerECSCluster'
       DesiredCount: '1'
@@ -592,7 +587,7 @@ Outputs:
     Properties:
       MaxCapacity: 3
       MinCapacity: 1
-      ResourceId: !Join ['', [worker/, !Ref 'ECSCluster', /, !GetAtt [service, Name]]]
+      ResourceId: !Join ['', [worker/, !Ref 'WorkerECSCluster', /, !GetAtt [worker, Name]]]
       RoleARN: !GetAtt [AutoscalingRole, Arn]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
@@ -609,7 +604,7 @@ Outputs:
         StepAdjustments:
         - MetricIntervalLowerBound: 0
           ScalingAdjustment: 200
-  ALB500sAlarmScaleUp:
+  WorkerALB500sAlarmScaleUp:
     Type: AWS::CloudWatch::Alarm
     Properties:
       EvaluationPeriods: '1'
@@ -624,7 +619,7 @@ Outputs:
         Value: !Ref 'worker'
       ComparisonOperator: GreaterThanThreshold
       MetricName: HTTPCode_ELB_5XX_Count
-  EC2Role:
+  WorkerEC2Role:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -645,7 +640,7 @@ Outputs:
               'ecr:BatchCheckLayerAvailability', 'ecr:GetDownloadUrlForLayer', 'ecr:GetRepositoryPolicy',
               'ecr:DescribeRepositories', 'ecr:ListImages', 'ecr:DescribeImages', 'ecr:BatchGetImage']
             Resource: '*'
-  AutoscalingRole:
+  WorkerAutoscalingRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -663,18 +658,18 @@ Outputs:
             Action: ['application-autoscaling:*', 'cloudwatch:DescribeAlarms', 'cloudwatch:PutMetricAlarm',
               'ecs:DescribeServices', 'ecs:UpdateService']
             Resource: '*'
-  EC2InstanceProfile:
+  WorkerEC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
-      Roles: [!Ref 'EC2Role']
+      Roles: [!Ref 'WorkerEC2Role']
 Outputs:
   ecsservice:
-    Value: !Ref 'worker'
+    Value: !Ref 'service'
   ecscluster:
-    Value: !Ref 'WorkerECSCluster'
+    Value: !Ref 'ECSCluster'
   ECSALB:
     Description: Your ALB DNS URL
-    Value: !Join ['', [!GetAtt [WorkerECSALB, DNSName]]]
+    Value: !Join ['', [!GetAtt [ECSALB, DNSName]]]
   taskdef:
-    Value: !Ref 'workertaskdefinition'
+    Value: !Ref 'taskdefinition'
