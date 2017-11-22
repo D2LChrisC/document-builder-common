@@ -17,6 +17,10 @@ var _bunyanFirehose = require('bunyan-firehose');
 
 var _bunyanFirehose2 = _interopRequireDefault(_bunyanFirehose);
 
+var _v = require('uuid/v4');
+
+var _v2 = _interopRequireDefault(_v);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function createLogger(name, config) {
@@ -33,7 +37,7 @@ function createLogger(name, config) {
 	if (config.firehoseStream) {
 		var credentials = new _awsSdk2.default.TemporaryCredentials({
 			RoleArn: config.firehoseRole,
-			RoleSessionName: 'docs-logging',
+			RoleSessionName: (0, _v2.default)(),
 			DurationSeconds: 3600
 		}, new _awsSdk2.default.Credentials(config.accessKeyId, config.secretAccessKey));
 
@@ -41,6 +45,10 @@ function createLogger(name, config) {
 			streamName: config.firehoseStream,
 			region: 'us-east-1',
 			credentials: credentials
+		});
+
+		firehoseStream.on('error', function (err) {
+			console.log('Failed to log to Firehose:', err);
 		});
 
 		logConfig.streams.push({
