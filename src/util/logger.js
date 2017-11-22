@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk';
 import bunyan from 'bunyan';
 import firehose from 'bunyan-firehose';
+import uuid from 'uuid/v4';
 
 export default function createLogger(name, config) {
 	config = config || { logLevel: 'debug' };
@@ -18,7 +19,7 @@ export default function createLogger(name, config) {
 	if (config.firehoseStream) {
 		const credentials = new AWS.TemporaryCredentials({
 			RoleArn: config.firehoseRole,
-			RoleSessionName: 'docs-logging',
+			RoleSessionName: uuid(),
 			DurationSeconds: 3600
 		},
 		new AWS.Credentials(
@@ -30,6 +31,10 @@ export default function createLogger(name, config) {
 			streamName: config.firehoseStream,
 			region: 'us-east-1',
 			credentials: credentials
+		});
+
+		firehoseStream.on('error', err => {
+			console.log('Failed to log to Firehose:', err);
 		});
 
 		logConfig.streams.push({
