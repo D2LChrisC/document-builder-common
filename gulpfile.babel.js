@@ -27,7 +27,7 @@ function test() {
 		.pipe(mocha({
 			reporter: 'spec',
 			timeout: 5000,
-			compilers: 'js:babel-core/register'
+			compilers: 'js:babel-register'
 		}))
 		.pipe(istanbul.writeReports({ reporters: [ 'lcov' ]}));
 }
