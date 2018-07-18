@@ -2,7 +2,7 @@ language: javascript
 services:
   - docker
 before_install:
-  - npm install --loglevel error -g gulp
+  - npm install --loglevel error -g gulp-cli
   - docker run -d -p 4569:4569 --name s3 lphoward/fake-s3
   - docker run -d -p 7777:7777 --name dynamodb tray/dynamodb-local -inMemory -port 7777
   - npm install aws-sdk bluebird
