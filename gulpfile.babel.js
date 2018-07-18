@@ -21,11 +21,7 @@ function coverage() {
 		.pipe(istanbul.hookRequire());
 }
 
-gulp.task('lint', lint);
-
-gulp.task('coverage', coverage);
-
-gulp.task('test', gulp.series('lint', 'coverage', () => {
+function test() {
 	return gulp
 		.src('tests/**/*.tests.js')
 		.pipe(mocha({
@@ -34,10 +30,18 @@ gulp.task('test', gulp.series('lint', 'coverage', () => {
 			compilers: 'js:babel-core/register'
 		}))
 		.pipe(istanbul.writeReports({ reporters: [ 'lcov' ]}));
-}));
+}
 
-gulp.task('report-coverage', gulp.series('test', () => {
+function reportCoverage() {
 	return gulp
 		.src('coverage/lcov.info')
 		.pipe(coveralls());
-}));
+}
+
+gulp.task('lint', lint);
+
+gulp.task('coverage', coverage);
+
+gulp.task('test', gulp.series('lint', 'coverage', test));
+
+gulp.task('report-coverage', gulp.series('test', reportCoverage));
