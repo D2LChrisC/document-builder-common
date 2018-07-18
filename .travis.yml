@@ -10,4 +10,4 @@ before_install:
   - node admin/setup-db.js http://localhost:7777/
 script:
   - npm install --loglevel error
-  - gulp report-coverage
+  - gulp test
