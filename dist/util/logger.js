@@ -39,7 +39,7 @@ function createLogger(name, config) {
 			RoleArn: config.firehoseRole,
 			RoleSessionName: (0, _v2.default)(),
 			DurationSeconds: 3600
-		}, new _awsSdk2.default.Credentials(config.accessKeyId, config.secretAccessKey));
+		});
 
 		var firehoseStream = _bunyanFirehose2.default.createStream({
 			streamName: config.firehoseStream,

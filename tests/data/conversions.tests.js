@@ -2,8 +2,6 @@ import Database from '../../src/data/database';
 import { expect } from 'chai';
 
 const db = new Database(
-	'key',
-	'secret',
 	'us-east-1',
 	'http://localhost:7777/');
 const Conversion = db.Conversion;

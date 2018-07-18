@@ -21,11 +21,7 @@ export default function createLogger(name, config) {
 			RoleArn: config.firehoseRole,
 			RoleSessionName: uuid(),
 			DurationSeconds: 3600
-		},
-		new AWS.Credentials(
-			config.accessKeyId,
-			config.secretAccessKey
-		));
+		});
 
 		const firehoseStream = firehose.createStream({
 			streamName: config.firehoseStream,

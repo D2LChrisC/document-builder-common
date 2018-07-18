@@ -9,8 +9,6 @@ Bluebird.promisifyAll(fs);
 
 const awsConfig = {
 	s3ForcePathStyle: true,
-	accessKeyId: 'key',
-	secretAccessKey: 'secret',
 	region: 'us-west-1',
 	endpoint: new AWS.Endpoint('http://localhost:4569/')
 };
@@ -21,8 +19,6 @@ const encryptionKeyId = 'b3257d00-170a-40ee-b374-ab923dbcb606';
 const testBucket = 'my-test-bucket';
 const storage = new FileStorage(
 	testBucket,
-	'key',
-	'secret',
 	'us-west-1',
 	'http://localhost:4569',
 	encryptionKeyId);

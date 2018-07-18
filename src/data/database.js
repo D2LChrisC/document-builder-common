@@ -2,15 +2,16 @@ import AWS from 'aws-sdk';
 import vogels from 'vogels';
 
 class DynamoDatabase {
-	constructor(keyId, secretKey, region, endpoint) {
+	constructor(region, endpoint) {
 		const dbConfig = {
-			accessKeyId: keyId,
-			secretAccessKey: secretKey,
 			region: region
 		};
 
 		if (endpoint) {
+			// This is for testing only.
 			dbConfig.endpoint = endpoint;
+			dbConfig.accessKeyId = 'key';
+			dbConfig.secretAccessKey = 'secret';
 		}
 
 		AWS.config.update(dbConfig);

@@ -124,7 +124,7 @@ function doMultipartUpload(opts) {
 }
 
 class FileStorage {
-	constructor(bucket, accessKey, accessSecret, region, endpoint, encryptKey) {
+	constructor(bucket, region, endpoint, encryptKey) {
 		if (!bucket) {
 			throw new TypeError('Bucket name must be specified in constructor.');
 		}
@@ -133,8 +133,6 @@ class FileStorage {
 
 		const awsConfig = {
 			s3ForcePathStyle: true,
-			accessKeyId: accessKey,
-			secretAccessKey: accessSecret,
 			signatureVersion: 'v4',
 			region: region
 		};

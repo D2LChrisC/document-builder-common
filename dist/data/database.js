@@ -16,17 +16,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var DynamoDatabase = function DynamoDatabase(keyId, secretKey, region, endpoint) {
+var DynamoDatabase = function DynamoDatabase(region, endpoint) {
 	_classCallCheck(this, DynamoDatabase);
 
 	var dbConfig = {
-		accessKeyId: keyId,
-		secretAccessKey: secretKey,
 		region: region
 	};
 
 	if (endpoint) {
+		// This is for testing only.
 		dbConfig.endpoint = endpoint;
+		dbConfig.accessKeyId = 'key';
+		dbConfig.secretAccessKey = 'secret';
 	}
 
 	_awsSdk2.default.config.update(dbConfig);

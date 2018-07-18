@@ -136,7 +136,7 @@ function doMultipartUpload(opts) {
 }
 
 var FileStorage = function () {
-	function FileStorage(bucket, accessKey, accessSecret, region, endpoint, encryptKey) {
+	function FileStorage(bucket, region, endpoint, encryptKey) {
 		_classCallCheck(this, FileStorage);
 
 		if (!bucket) {
@@ -147,8 +147,6 @@ var FileStorage = function () {
 
 		var awsConfig = {
 			s3ForcePathStyle: true,
-			accessKeyId: accessKey,
-			secretAccessKey: accessSecret,
 			signatureVersion: 'v4',
 			region: region
 		};
